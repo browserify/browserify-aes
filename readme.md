@@ -1,4 +1,4 @@
-browserify-aes
+browserify-aes [![Build Status](https://travis-ci.org/calvinmetcalf/browserify-aes.svg)](https://travis-ci.org/calvinmetcalf/browserify-aes)
 ====
 
 much of this taken from the aes implimentation in [triplesec](https://github.com/keybase/triplesec), they are just normal streams for now, no fancy stuff.
