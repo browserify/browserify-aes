@@ -43,7 +43,19 @@ fixtures.forEach(function (fixture) {
       suite.write(new Buffer(fixture.text));
       suite.end();
     });
-    test(cipher + '-derypt', function (t) {
+    test(cipher + '-legacy', function (t) {
+      t.plan(1);
+      var suite = crypto.createCipher(cipher, new Buffer(fixture.password));
+      var buf = new Buffer('');
+      buf = Buffer.concat([buf, suite.update(new Buffer(fixture.text))]);
+      buf = Buffer.concat([buf, suite.final()]);
+      var suite2 = _crypto.createCipher(cipher, new Buffer(fixture.password));
+      var buf2 = new Buffer('');
+      buf2 = Buffer.concat([buf2, suite2.update(new Buffer(fixture.text))]);
+      buf2 = Buffer.concat([buf2, suite2.final()]);
+      t.equals(buf.toString('hex'), buf2.toString('hex'));
+    });
+    test(cipher + '-decrypt', function (t) {
       t.plan(1);
       var suite = crypto.createDecipher(cipher, new Buffer(fixture.password));
       var buf = new Buffer('');
@@ -61,6 +73,19 @@ fixtures.forEach(function (fixture) {
       });
       suite.write(new Buffer(fixture.results.ciphers[cipher], 'hex'));
       suite.end();
+    });
+    test(cipher + '-decrypt-legacy', function (t) {
+      t.plan(2);
+      var suite = crypto.createDecipher(cipher, new Buffer(fixture.password));
+      var buf = new Buffer('');
+      buf = Buffer.concat([buf, suite.update(new Buffer(fixture.results.ciphers[cipher], 'hex'))]);
+      buf = Buffer.concat([buf, suite.final()]);
+      var suite2 = _crypto.createDecipher(cipher, new Buffer(fixture.password));
+      var buf2 = new Buffer('');
+      buf2 = Buffer.concat([buf2, suite2.update(new Buffer(fixture.results.ciphers[cipher], 'hex'))]);
+      buf2 = Buffer.concat([buf2, suite2.final()]);
+      t.equals(buf.toString('utf8'), fixture.text);
+      t.equals(buf.toString('utf8'), buf2.toString('utf8'));
     });
     //var cipherivs = fixture.results.cipherivs = {};
     types.forEach(function (cipher) {
@@ -83,6 +108,19 @@ fixtures.forEach(function (fixture) {
         suite.write(new Buffer(fixture.text));
         suite.end();
       });
+      test(cipher + '-legacy-iv', function (t) {
+        t.plan(2);
+        var suite = crypto.createCipheriv(cipher, ebtk(_crypto, fixture.password, modes[cipher].key).key, new Buffer(fixture.iv, 'hex'));
+        var buf = new Buffer('');
+        buf = Buffer.concat([buf, suite.update(new Buffer(fixture.text))]);
+        buf = Buffer.concat([buf, suite.final()]);
+        var suite2 = _crypto.createCipheriv(cipher, ebtk(_crypto, fixture.password, modes[cipher].key).key, new Buffer(fixture.iv, 'hex'));
+        var buf2 = new Buffer('');
+        buf2 = Buffer.concat([buf2, suite2.update(new Buffer(fixture.text))]);
+        buf2 = Buffer.concat([buf2, suite2.final()]);
+        t.equals(buf.toString('hex'), fixture.results.cipherivs[cipher]);
+        t.equals(buf.toString('hex'), buf2.toString('hex'));
+      });
       test(cipher + '-iv-decrypt', function (t) {
         t.plan(1);
         var suite = crypto.createDecipheriv(cipher, ebtk(_crypto, fixture.password, modes[cipher].key).key, new Buffer(fixture.iv, 'hex'));
@@ -98,6 +136,19 @@ fixtures.forEach(function (fixture) {
         });
         suite.write(new Buffer(fixture.results.cipherivs[cipher], 'hex'));
         suite.end();
+      });
+      test(cipher + '-decrypt-legacy', function (t) {
+        t.plan(2);
+        var suite = crypto.createDecipheriv(cipher, ebtk(_crypto, fixture.password, modes[cipher].key).key, new Buffer(fixture.iv, 'hex'));
+        var buf = new Buffer('');
+        buf = Buffer.concat([buf, suite.update(new Buffer(fixture.results.cipherivs[cipher], 'hex'))]);
+        buf = Buffer.concat([buf, suite.final()]);
+        var suite2 = _crypto.createDecipheriv(cipher, ebtk(_crypto, fixture.password, modes[cipher].key).key, new Buffer(fixture.iv, 'hex'));
+        var buf2 = new Buffer('');
+        buf2 = Buffer.concat([buf2, suite2.update(new Buffer(fixture.results.cipherivs[cipher], 'hex'))]);
+        buf2 = Buffer.concat([buf2, suite2.final()]);
+        t.equals(buf.toString('utf8'), fixture.text);
+        t.equals(buf.toString('utf8'), buf2.toString('utf8'));
       });
     });
   });

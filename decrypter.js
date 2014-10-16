@@ -6,6 +6,13 @@ var modes = require('./modes');
 var ebtk = require('./EVP_BytesToKey');
 var xor = require('./xor');
 inherits(Splitter, Transform);
+function unpad(last) {
+  var padded = last[15];
+  if (padded === 16) {
+    return;
+  }
+  return last.slice(0, 16 - padded);
+}
 function Splitter() {
   if (!(this instanceof Splitter)) {
     return new Splitter();
@@ -36,6 +43,7 @@ function ECB(key) {
   Transform.call(this);
   this._cipher = new aes.AES(key);
   this._last = void 0;
+  this._pad = true;
 }
 
 ECB.prototype._transform = function (data, _, next) {
@@ -50,13 +58,16 @@ ECB.prototype._transform = function (data, _, next) {
 
 ECB.prototype._flush = function (next) {
   this._cipher.scrub();
-  var last = this._last;
-  var padded = last[15];
-  if (padded === 16) {
+  if (this._pad === false) {
+    if (this._last) {
+      this.push(this._last);
+    }
     return next();
   }
-  var out = last.slice(0, 16 - padded);
-  this.push(out);
+  var depadded = unpad(this._last);
+  if (depadded) {
+    this.push(depadded);
+  }
   next();
 };
 inherits(CBC, Transform);
@@ -78,17 +89,21 @@ CBC.prototype._transform = function (data, _, next) {
   }
   this._last = xor(out, this._prev);
   this._prev = indata;
+  this._pad = true;
   next();
 };
 CBC.prototype._flush = function (next) {
   this._cipher.scrub();
-  var last = this._last;
-  var padded = last[15];
-  if (padded === 16) {
+  if (this._pad === false) {
+    if (this._last) {
+      this.push(this._last);
+    }
     return next();
   }
-  var out = last.slice(0, 16 - padded);
-  this.push(out);
+  var depadded = unpad(this._last);
+  if (depadded) {
+    this.push(depadded);
+  }
   next();
 };
 var modeStreams = {
@@ -116,8 +131,46 @@ module.exports = function (crypto) {
     }
     var splitter = new Splitter();
     var stream = new modeStreams[config.mode](password, iv);
-    splitter.pipe(stream);
-    return duplexer(splitter, stream);
+    splitter.on('data', function (d) {
+      stream.write(d);
+    });
+    splitter.on('finish', function () {
+      stream.end();
+    });
+    var out = duplexer(splitter, stream);
+    out.setAutoPadding = function (padding) {
+      stream._padding = padding;
+    };
+    out._legacy = false;
+    var outData = new Buffer('');
+    out.update = function (data, inputEnd, outputEnc) {
+      if (out._legacy === false) {
+        out._legacy = true;
+        stream.on('data', function (chunk) {
+          outData = Buffer.concat([outData, chunk]);
+        });
+        stream.pause = function (){
+          // else it will stall out
+        };
+      }
+      splitter.write(data, inputEnd);
+      var ourData = outData;
+      outData = new Buffer('');
+      if (outputEnc) {
+        ourData = ourData.toString(outputEnc);
+      }
+      return ourData;
+    };
+    out.final = function (outputEnc) {
+      splitter.end();
+      var ourData = outData;
+      outData = null;
+      if (outputEnc) {
+        ourData = ourData.toString(outputEnc);
+      }
+      return ourData;
+    };
+    return out;
   }
   function createDecipher (suite, password) {
     var config = modes[suite];

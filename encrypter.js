@@ -6,9 +6,14 @@ var modes = require('./modes');
 var ebtk = require('./EVP_BytesToKey');
 var xor = require('./xor');
 inherits(Splitter, Transform);
-function Splitter() {
+function Splitter(padding) {
   if (!(this instanceof Splitter)) {
-    return new Splitter();
+    return new Splitter(padding);
+  }
+  if (padding === false) {
+    this._padding = false;
+  } else {
+    this._padding = true;
   }
   Transform.call(this);
   this.cache = new Buffer('');
@@ -29,6 +34,10 @@ Splitter.prototype._transform = function (data, _, next) {
 };
 
 Splitter.prototype._flush = function (next) {
+  if (!this._padding) {
+    this.push(this.cache);
+    return next();
+  }
   var len = 16 - this.cache.length;
   var padBuff = new Buffer(len);
 
@@ -103,8 +112,46 @@ module.exports = function (crypto) {
     }
     var splitter = new Splitter();
     var stream = new modeStreams[config.mode](password, iv);
-    splitter.pipe(stream);
-    return duplexer(splitter, stream);
+    splitter.on('data', function (d) {
+      stream.write(d);
+    });
+    splitter.on('finish', function () {
+      stream.end();
+    });
+    var out = duplexer(splitter, stream);
+    out.setAutoPadding = function (padding) {
+      splitter._padding = padding;
+    };
+    out._legacy = false;
+    var outData = new Buffer('');
+    out.update = function (data, inputEnd, outputEnc) {
+      if (out._legacy === false) {
+        out._legacy = true;
+        stream.on('data', function (chunk) {
+          outData = Buffer.concat([outData, chunk]);
+        });
+        stream.pause = function (){
+          // else it will stall out
+        };
+      }
+      splitter.write(data, inputEnd);
+      var ourData = outData;
+      outData = new Buffer('');
+      if (outputEnc) {
+        ourData = ourData.toString(outputEnc);
+      }
+      return ourData;
+    };
+    out.final = function (outputEnc) {
+      splitter.end();
+      var ourData = outData;
+      outData = null;
+      if (outputEnc) {
+        ourData = ourData.toString(outputEnc);
+      }
+      return ourData;
+    };
+    return out;
   }
   function createCipher (suite, password) {
     var config = modes[suite];
