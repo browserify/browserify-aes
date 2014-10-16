@@ -1,9 +1,6 @@
 module.exports = xor;
 function xor(a, b) {
-  if (a.length !== b.length) {
-    throw new TypeError('must be same length');
-  }
-  var len = a.length;
+  var len = Math.min(a.length, b.length);
   var out = new Buffer(len);
   var i = -1;
   while (++i < len) {

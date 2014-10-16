@@ -87,10 +87,29 @@ CBC.prototype._flush = function (next) {
   this._cipher.scrub();
   next();
 };
+inherits(CFB, Transform);
+function CFB(key, iv) {
+  if (!(this instanceof CFB)) {
+    return new CFB(key, iv);
+  }
+  Transform.call(this);
+  this._cipher = new aes.AES(key);
+  this._prev = iv;
+}
 
+CFB.prototype._transform = function (data, _, next) {
+  var pad = this._cipher.encryptBlock(this._prev);
+  this._prev = xor(data, pad);
+  next(null, this._prev);
+};
+CFB.prototype._flush = function (next) {
+  this._cipher.scrub();
+  next();
+};
 var modeStreams = {
   ECB: ECB,
-  CBC: CBC
+  CBC: CBC,
+  CFB: CFB
 };
 module.exports = function (crypto) {
   function createCipheriv(suite, password, iv) {
@@ -110,7 +129,7 @@ module.exports = function (crypto) {
     if (iv.length !== config.iv) {
       throw new TypeError('invalid iv length ' + iv.length);
     }
-    var splitter = new Splitter();
+    var splitter = new Splitter(config.padding);
     var stream = new modeStreams[config.mode](password, iv);
     splitter.on('data', function (d) {
       stream.write(d);

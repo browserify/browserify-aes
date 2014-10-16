@@ -13,9 +13,14 @@ function unpad(last) {
   }
   return last.slice(0, 16 - padded);
 }
-function Splitter() {
+function Splitter(padding) {
   if (!(this instanceof Splitter)) {
-    return new Splitter();
+    return new Splitter(padding);
+  }
+  if (padding === false) {
+    this._padding = false;
+  } else {
+    this._padding = true;
   }
   Transform.call(this);
   this.cache = new Buffer('');
@@ -31,6 +36,12 @@ Splitter.prototype._transform = function (data, _, next) {
   }
   if (i) {
     this.cache = this.cache.slice(i);
+  }
+  next();
+};
+Splitter.prototype._flush = function (next) {
+  if (this._padding === false) {
+    this.push(this.cache);
   }
   next();
 };
@@ -106,9 +117,30 @@ CBC.prototype._flush = function (next) {
   }
   next();
 };
+inherits(CFB, Transform);
+function CFB(key, iv) {
+  if (!(this instanceof CFB)) {
+    return new CFB(key, iv);
+  }
+  Transform.call(this);
+  this._cipher = new aes.AES(key);
+  this._prev = iv;
+}
+
+CFB.prototype._transform = function (data, _, next) {
+  // yes encrypt
+  var pad = this._cipher.encryptBlock(this._prev);
+  this._prev = data;
+  next(null, xor(pad, data));
+};
+CFB.prototype._flush = function (next) {
+  this._cipher.scrub();
+  next();
+};
 var modeStreams = {
   ECB: ECB,
-  CBC: CBC
+  CBC: CBC,
+  CFB: CFB
 };
 
 module.exports = function (crypto) {
@@ -129,7 +161,7 @@ module.exports = function (crypto) {
     if (iv.length !== config.iv) {
       throw new TypeError('invalid iv length ' + iv.length);
     }
-    var splitter = new Splitter();
+    var splitter = new Splitter(config.padding);
     var stream = new modeStreams[config.mode](password, iv);
     splitter.on('data', function (d) {
       stream.write(d);
