@@ -181,7 +181,7 @@ CTR.prototype._flush = function (next) {
 CTR.prototype._incr32 = function () {
   var len = this._iv.length;
   var item;
-  while (--len) {
+  while (len--) {
     item = this._iv.readUInt8(len);
     if (item === 255) {
       this._iv.writeUInt8(0, len);
