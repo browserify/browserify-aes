@@ -21,10 +21,10 @@ function decriptNoPadding(cipher, password, thing, code) {
   suite.write(thing, 'hex');
   suite.end();
 }
-fixtures.forEach(function (fixture) {
+fixtures.forEach(function (fixture, i) {
   //var ciphers = fixture.results.ciphers = {};
   types.forEach(function (cipher) {
-    test(cipher, function (t) {
+    test('fixture ' + i + ' ' + cipher, function (t) {
       t.plan(1);
       var suite = crypto.createCipher(cipher, new Buffer(fixture.password));
       var buf = new Buffer('');
@@ -43,7 +43,7 @@ fixtures.forEach(function (fixture) {
       suite.write(new Buffer(fixture.text));
       suite.end();
     });
-    test(cipher + '-legacy', function (t) {
+    test('fixture ' + i + ' ' + cipher + '-legacy', function (t) {
       t.plan(1);
       var suite = crypto.createCipher(cipher, new Buffer(fixture.password));
       var buf = new Buffer('');
@@ -55,7 +55,7 @@ fixtures.forEach(function (fixture) {
       buf2 = Buffer.concat([buf2, suite2.final()]);
       t.equals(buf.toString('hex'), buf2.toString('hex'));
     });
-    test(cipher + '-decrypt', function (t) {
+    test('fixture ' + i + ' ' + cipher + '-decrypt', function (t) {
       t.plan(1);
       var suite = crypto.createDecipher(cipher, new Buffer(fixture.password));
       var buf = new Buffer('');
@@ -74,7 +74,7 @@ fixtures.forEach(function (fixture) {
       suite.write(new Buffer(fixture.results.ciphers[cipher], 'hex'));
       suite.end();
     });
-    test(cipher + '-decrypt-legacy', function (t) {
+    test('fixture ' + i + ' ' + cipher + '-decrypt-legacy', function (t) {
       t.plan(2);
       var suite = crypto.createDecipher(cipher, new Buffer(fixture.password));
       var buf = new Buffer('');
@@ -92,7 +92,7 @@ fixtures.forEach(function (fixture) {
       if (modes[cipher].mode === 'ECB') {
         return;
       }
-      test(cipher + '-iv', function (t) {
+      test('fixture ' + i + ' ' + cipher + '-iv', function (t) {
         t.plan(1);
         var suite = crypto.createCipheriv(cipher, ebtk(_crypto, fixture.password, modes[cipher].key).key, new Buffer(fixture.iv, 'hex'));
         var buf = new Buffer('');
@@ -108,7 +108,7 @@ fixtures.forEach(function (fixture) {
         suite.write(new Buffer(fixture.text));
         suite.end();
       });
-      test(cipher + '-legacy-iv', function (t) {
+      test('fixture ' + i + ' ' + cipher + '-legacy-iv', function (t) {
         t.plan(2);
         var suite = crypto.createCipheriv(cipher, ebtk(_crypto, fixture.password, modes[cipher].key).key, new Buffer(fixture.iv, 'hex'));
         var buf = new Buffer('');
@@ -121,7 +121,7 @@ fixtures.forEach(function (fixture) {
         t.equals(buf.toString('hex'), fixture.results.cipherivs[cipher]);
         t.equals(buf.toString('hex'), buf2.toString('hex'));
       });
-      test(cipher + '-iv-decrypt', function (t) {
+      test('fixture ' + i + ' ' + cipher + '-iv-decrypt', function (t) {
         t.plan(1);
         var suite = crypto.createDecipheriv(cipher, ebtk(_crypto, fixture.password, modes[cipher].key).key, new Buffer(fixture.iv, 'hex'));
         var buf = new Buffer('');
@@ -137,7 +137,7 @@ fixtures.forEach(function (fixture) {
         suite.write(new Buffer(fixture.results.cipherivs[cipher], 'hex'));
         suite.end();
       });
-      test(cipher + '-decrypt-legacy', function (t) {
+      test('fixture ' + i + ' ' + cipher + '-decrypt-legacy', function (t) {
         t.plan(2);
         var suite = crypto.createDecipheriv(cipher, ebtk(_crypto, fixture.password, modes[cipher].key).key, new Buffer(fixture.iv, 'hex'));
         var buf = new Buffer('');
