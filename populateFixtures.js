@@ -1,4 +1,4 @@
-var types = ['aes-128-ofb','aes-192-ofb','aes-256-ofb'];
+var types = ['aes-128-ctr','aes-192-ctr','aes-256-ctr'];
 var fixtures = require('./test/fixtures.json');
 var crypto = require('crypto');
 var modes = require('./modes');

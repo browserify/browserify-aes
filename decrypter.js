@@ -157,12 +157,47 @@ OFB.prototype._flush = function (next) {
   this._cipher.scrub();
   next();
 };
+inherits(CTR, Transform);
+function CTR(key, iv) {
+  if (!(this instanceof CTR)) {
+    return new CTR(key, iv);
+  }
+  Transform.call(this);
+  this._cipher = new aes.AES(key);
+  this._iv = new Buffer(iv.length);
+  iv.copy(this._iv);
+}
 
+CTR.prototype._transform = function (data, _, next) {
+  this.push(xor(data, this._cipher.encryptBlock(this._iv)));
+  this._incr32();
+  next();
+};
+CTR.prototype._flush = function (next) {
+  this._cipher.scrub();
+  this._iv.fill(0);
+  next();
+};
+CTR.prototype._incr32 = function () {
+  var len = this._iv.length;
+  var item;
+  while (--len) {
+    item = this._iv.readUInt8(len);
+    if (item === 255) {
+      this._iv.writeUInt8(0, len);
+    } else {
+      item++;
+      this._iv.writeUInt8(item, len);
+      break;
+    }
+  }
+};
 var modeStreams = {
   ECB: ECB,
   CBC: CBC,
   CFB: CFB,
-  OFB: OFB
+  OFB: OFB,
+  CTR: CTR
 };
 
 module.exports = function (crypto) {
