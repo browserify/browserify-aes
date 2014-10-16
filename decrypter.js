@@ -137,10 +137,32 @@ CFB.prototype._flush = function (next) {
   this._cipher.scrub();
   next();
 };
+
+//the same as encryption
+inherits(OFB, Transform);
+function OFB(key, iv) {
+  if (!(this instanceof OFB)) {
+    return new OFB(key, iv);
+  }
+  Transform.call(this);
+  this._cipher = new aes.AES(key);
+  this._prev = iv;
+}
+
+OFB.prototype._transform = function (data, _, next) {
+  this._prev = this._cipher.encryptBlock(this._prev);
+  next(null, xor(data, this._prev));
+};
+OFB.prototype._flush = function (next) {
+  this._cipher.scrub();
+  next();
+};
+
 var modeStreams = {
   ECB: ECB,
   CBC: CBC,
-  CFB: CFB
+  CFB: CFB,
+  OFB: OFB
 };
 
 module.exports = function (crypto) {
