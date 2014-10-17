@@ -1,4 +1,3 @@
-var crypto = require('crypto');
 var uint_max = Math.pow(2, 32);
 function fixup_uint32(x) {
     var ret, x_pos;
