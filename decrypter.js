@@ -45,6 +45,31 @@ Decipher.prototype._flush = function (next) {
   }
   next();
 };
+Decipher.prototype.update = function (data, inputEnd, outputEnc) {
+  this.write(data, inputEnd);
+  var outData = new Buffer('');
+  var chunk;
+  while ((chunk = this.read())) {
+    outData = Buffer.concat([outData, chunk]);
+  }
+  if (outputEnc) {
+    outData = outData.toString(outputEnc);
+  }
+  return outData;
+};
+Decipher.prototype.final = function (outputEnc) {
+  this.end();
+  var outData = new Buffer('');
+  var chunk;
+  while ((chunk = this.read())) {
+    outData = Buffer.concat([outData, chunk]);
+  }
+  if (outputEnc) {
+    outData = outData.toString(outputEnc);
+  }
+  return outData;
+};
+
 function Splitter() {
    if (!(this instanceof Splitter)) {
     return new Splitter();
@@ -102,33 +127,7 @@ module.exports = function (crypto) {
     if (iv.length !== config.iv) {
       throw new TypeError('invalid iv length ' + iv.length);
     }
-    var decipher = new Decipher(config.padding, modelist[config.mode], password, iv);
-
-    decipher.update = function (data, inputEnd, outputEnc) {
-      decipher.write(data, inputEnd);
-      var outData = new Buffer('');
-      var chunk;
-      while ((chunk = decipher.read())) {
-        outData = Buffer.concat([outData, chunk]);
-      }
-      if (outputEnc) {
-        outData = outData.toString(outputEnc);
-      }
-      return outData;
-    };
-    decipher.final = function (outputEnc) {
-      decipher.end();
-      var outData = new Buffer('');
-      var chunk;
-      while ((chunk = decipher.read())) {
-        outData = Buffer.concat([outData, chunk]);
-      }
-      if (outputEnc) {
-        outData = outData.toString(outputEnc);
-      }
-      return outData;
-    };
-    return decipher;
+    return new Decipher(config.padding, modelist[config.mode], password, iv);
   }
 
   function createDecipher (suite, password) {

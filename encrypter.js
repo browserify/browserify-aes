@@ -31,6 +31,32 @@ Cipher.prototype._flush = function (next) {
   this._cipher.scrub();
   next();
 };
+
+Cipher.prototype.update = function (data, inputEnd, outputEnc) {
+  this.write(data, inputEnd);
+  var outData = new Buffer('');
+  var chunk;
+  while ((chunk = this.read())) {
+    outData = Buffer.concat([outData, chunk]);
+  }
+  if (outputEnc) {
+    outData = outData.toString(outputEnc);
+  }
+  return outData;
+};
+Cipher.prototype.final = function (outputEnc) {
+  this.end();
+  var outData = new Buffer('');
+  var chunk;
+  while ((chunk = this.read())) {
+    outData = Buffer.concat([outData, chunk]);
+  }
+  if (outputEnc) {
+    outData = outData.toString(outputEnc);
+  }
+  return outData;
+};
+
 function Splitter(padding) {
    if (!(this instanceof Splitter)) {
     return new Splitter(padding);
@@ -93,33 +119,7 @@ module.exports = function (crypto) {
     if (iv.length !== config.iv) {
       throw new TypeError('invalid iv length ' + iv.length);
     }
-    var cipher = new Cipher(config.padding, modelist[config.mode], password, iv);
-
-    cipher.update = function (data, inputEnd, outputEnc) {
-      cipher.write(data, inputEnd);
-      var outData = new Buffer('');
-      var chunk;
-      while ((chunk = cipher.read())) {
-        outData = Buffer.concat([outData, chunk]);
-      }
-      if (outputEnc) {
-        outData = outData.toString(outputEnc);
-      }
-      return outData;
-    };
-    cipher.final = function (outputEnc) {
-      cipher.end();
-      var outData = new Buffer('');
-      var chunk;
-      while ((chunk = cipher.read())) {
-        outData = Buffer.concat([outData, chunk]);
-      }
-      if (outputEnc) {
-        outData = outData.toString(outputEnc);
-      }
-      return outData;
-    };
-    return cipher;
+    return new Cipher(config.padding, modelist[config.mode], password, iv);
   }
   function createCipher (suite, password) {
     var config = modes[suite];
