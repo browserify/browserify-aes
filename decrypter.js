@@ -4,7 +4,6 @@ var inherits = require('inherits');
 var modes = require('./modes');
 var ebtk = require('./EVP_BytesToKey');
 
-
 inherits(Decipher, Transform);
 function Decipher(padding, mode, key, iv) {
   if (!(this instanceof Decipher)) {

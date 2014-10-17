@@ -25,8 +25,7 @@
   },
   "homepage": "https://github.com/calvinmetcalf/browserify-aes",
   "dependencies": {
-    "inherits": "^2.0.1",
-    "duplexer2": "0.0.2"
+    "inherits": "^2.0.1"
   },
   "devDependencies": {
     "tape": "^3.0.0",
