@@ -48,7 +48,6 @@ exports['aes-128-cfb'] = {
   key: 128,
   iv: 16,
   mode: 'CFB',
-  padding: false,
   type: 'stream'
 };
 exports['aes-192-cfb'] = {
@@ -56,7 +55,6 @@ exports['aes-192-cfb'] = {
   key: 192,
   iv: 16,
   mode: 'CFB',
-  padding: false,
   type: 'stream'
 };
 exports['aes-256-cfb'] = {
@@ -64,7 +62,6 @@ exports['aes-256-cfb'] = {
   key: 256,
   iv: 16,
   mode: 'CFB',
-  padding: false,
   type: 'stream'
 };
 exports['aes-128-ofb'] = {
@@ -72,7 +69,6 @@ exports['aes-128-ofb'] = {
   key: 128,
   iv: 16,
   mode: 'OFB',
-  padding: false,
   type: 'stream'
 };
 exports['aes-192-ofb'] = {
@@ -80,7 +76,6 @@ exports['aes-192-ofb'] = {
   key: 192,
   iv: 16,
   mode: 'OFB',
-  padding: false,
   type: 'stream'
 };
 exports['aes-256-ofb'] = {
@@ -88,7 +83,6 @@ exports['aes-256-ofb'] = {
   key: 256,
   iv: 16,
   mode: 'OFB',
-  padding: false,
   type: 'stream'
 };
 exports['aes-128-ctr'] = {
@@ -96,7 +90,6 @@ exports['aes-128-ctr'] = {
   key: 128,
   iv: 16,
   mode: 'CTR',
-  padding: false,
   type: 'stream'
 };
 exports['aes-192-ctr'] = {
@@ -104,7 +97,6 @@ exports['aes-192-ctr'] = {
   key: 192,
   iv: 16,
   mode: 'CTR',
-  padding: false,
   type: 'stream'
 };
 exports['aes-256-ctr'] = {
@@ -112,6 +104,5 @@ exports['aes-256-ctr'] = {
   key: 256,
   iv: 16,
   mode: 'CTR',
-  padding: false,
   type: 'stream'
 };

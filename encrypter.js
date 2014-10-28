@@ -5,12 +5,12 @@ var modes = require('./modes');
 var ebtk = require('./EVP_BytesToKey');
 var StreamCipher = require('./streamCipher');
 inherits(Cipher, Transform);
-function Cipher(padding, mode, key, iv) {
+function Cipher(mode, key, iv) {
   if (!(this instanceof Cipher)) {
-    return new Cipher(padding, mode, key, iv);
+    return new Cipher(mode, key, iv);
   }
   Transform.call(this);
-  this._cache = new Splitter(padding);
+  this._cache = new Splitter();
   this._cipher = new aes.AES(key);
   this._prev = new Buffer(iv.length);
   iv.copy(this._prev);
@@ -34,14 +34,9 @@ Cipher.prototype._flush = function (next) {
 };
 
 
-function Splitter(padding) {
+function Splitter() {
    if (!(this instanceof Splitter)) {
-    return new Splitter(padding);
-  }
-  if (padding === false) {
-    this._padding = false;
-  } else {
-    this._padding = true;
+    return new Splitter();
   }
   this.cache = new Buffer('');
 }
@@ -58,9 +53,6 @@ Splitter.prototype.get = function () {
   return null;
 };
 Splitter.prototype.flush = function () {
-  if (!this._padding) {
-    return this.cache;
-  }
   var len = 16 - this.cache.length;
   var padBuff = new Buffer(len);
 
@@ -99,7 +91,7 @@ module.exports = function (crypto) {
     if (config.type === 'stream') {
       return new StreamCipher(modelist[config.mode], password, iv);
     }
-    return new Cipher(config.padding, modelist[config.mode], password, iv);
+    return new Cipher(modelist[config.mode], password, iv);
   }
   function createCipher (suite, password) {
     var config = modes[suite];

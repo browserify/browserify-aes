@@ -6,17 +6,12 @@ var StreamCipher = require('./streamCipher');
 var ebtk = require('./EVP_BytesToKey');
 
 inherits(Decipher, Transform);
-function Decipher(padding, mode, key, iv) {
+function Decipher(mode, key, iv) {
   if (!(this instanceof Decipher)) {
-    return new Decipher(padding, mode, key, iv);
+    return new Decipher(mode, key, iv);
   }
   Transform.call(this);
   this._cache = new Splitter();
-   if (padding === false) {
-    this._padding = false;
-  } else {
-    this._padding = true;
-  }
   this._last = void 0;
   this._cipher = new aes.AES(key);
   this._prev = new Buffer(iv.length);
@@ -38,11 +33,9 @@ Decipher.prototype._flush = function (next) {
   if (!chunk) {
     return next;
   }
-  if (this._padding) {
-    this.push(unpad(this._mode.decrypt(this, chunk)));
-  } else {
-    this.push(this._mode.decrypt(this, chunk));
-  }
+
+  this.push(unpad(this._mode.decrypt(this, chunk)));
+
   next();
 };
 
@@ -106,7 +99,7 @@ module.exports = function (crypto) {
     if (config.type === 'stream') {
       return new StreamCipher(modelist[config.mode], password, iv, true);
     }
-    return new Decipher(config.padding, modelist[config.mode], password, iv);
+    return new Decipher(modelist[config.mode], password, iv);
   }
 
   function createDecipher (suite, password) {
