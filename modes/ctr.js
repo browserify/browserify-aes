@@ -1,8 +1,16 @@
 var xor = require('../xor');
-exports.encrypt = exports.decrypt = function (self, block) {
-  var out = xor(block, self._cipher.encryptBlock(self._prev));
+function getBlock(self) {
+  var out = self._cipher.encryptBlock(self._prev);
   incr32(self._prev);
   return out;
+}
+exports.encrypt = function (self, chunk) {
+  while (self._cache.length < chunk.length) {
+    self._cache = Buffer.concat([self._cache, getBlock(self)]);
+  }
+  var pad = self._cache.slice(0, chunk.length);
+  self._cache = self._cache.slice(chunk.length);
+  return xor(chunk, pad);
 };
 function incr32(iv) {
   var len = iv.length;

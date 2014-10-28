@@ -1,7 +1,8 @@
 var aes = require('./aes');
-var Transform = require('stream').Transform;
+var Transform = require('./cipherBase');
 var inherits = require('inherits');
 var modes = require('./modes');
+var StreamCipher = require('./streamCipher');
 var ebtk = require('./EVP_BytesToKey');
 
 inherits(Decipher, Transform);
@@ -43,30 +44,6 @@ Decipher.prototype._flush = function (next) {
     this.push(this._mode.decrypt(this, chunk));
   }
   next();
-};
-Decipher.prototype.update = function (data, inputEnd, outputEnc) {
-  this.write(data, inputEnd);
-  var outData = new Buffer('');
-  var chunk;
-  while ((chunk = this.read())) {
-    outData = Buffer.concat([outData, chunk]);
-  }
-  if (outputEnc) {
-    outData = outData.toString(outputEnc);
-  }
-  return outData;
-};
-Decipher.prototype.final = function (outputEnc) {
-  this.end();
-  var outData = new Buffer('');
-  var chunk;
-  while ((chunk = this.read())) {
-    outData = Buffer.concat([outData, chunk]);
-  }
-  if (outputEnc) {
-    outData = outData.toString(outputEnc);
-  }
-  return outData;
 };
 
 function Splitter() {
@@ -125,6 +102,9 @@ module.exports = function (crypto) {
     }
     if (iv.length !== config.iv) {
       throw new TypeError('invalid iv length ' + iv.length);
+    }
+    if (config.type === 'stream') {
+      return new StreamCipher(modelist[config.mode], password, iv, true);
     }
     return new Decipher(config.padding, modelist[config.mode], password, iv);
   }

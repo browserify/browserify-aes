@@ -1,8 +1,9 @@
 var aes = require('./aes');
-var Transform = require('stream').Transform;
+var Transform = require('./cipherBase');
 var inherits = require('inherits');
 var modes = require('./modes');
 var ebtk = require('./EVP_BytesToKey');
+var StreamCipher = require('./streamCipher');
 inherits(Cipher, Transform);
 function Cipher(padding, mode, key, iv) {
   if (!(this instanceof Cipher)) {
@@ -32,30 +33,6 @@ Cipher.prototype._flush = function (next) {
   next();
 };
 
-Cipher.prototype.update = function (data, inputEnd, outputEnc) {
-  this.write(data, inputEnd);
-  var outData = new Buffer('');
-  var chunk;
-  while ((chunk = this.read())) {
-    outData = Buffer.concat([outData, chunk]);
-  }
-  if (outputEnc) {
-    outData = outData.toString(outputEnc);
-  }
-  return outData;
-};
-Cipher.prototype.final = function (outputEnc) {
-  this.end();
-  var outData = new Buffer('');
-  var chunk;
-  while ((chunk = this.read())) {
-    outData = Buffer.concat([outData, chunk]);
-  }
-  if (outputEnc) {
-    outData = outData.toString(outputEnc);
-  }
-  return outData;
-};
 
 function Splitter(padding) {
    if (!(this instanceof Splitter)) {
@@ -118,6 +95,9 @@ module.exports = function (crypto) {
     }
     if (iv.length !== config.iv) {
       throw new TypeError('invalid iv length ' + iv.length);
+    }
+    if (config.type === 'stream') {
+      return new StreamCipher(modelist[config.mode], password, iv);
     }
     return new Cipher(config.padding, modelist[config.mode], password, iv);
   }
