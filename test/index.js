@@ -5,22 +5,6 @@ var crypto = require('../');
 var modes = require('../modes');
 var types = Object.keys(modes);
 var ebtk = require('../EVP_BytesToKey');
-function decriptNoPadding(cipher, password, thing, code) {
-  var suite = _crypto.createDecipher(cipher, password);
-  var buf = new Buffer('');
-  suite.on('data', function (d) {
-    buf = Buffer.concat([buf, d]);
-  });
-  suite.on('error', function (e) {
-    console.log(e);
-  });
-  suite.on("finish", function () {
-    console.log(code, buf.toString('hex'));
-  });
-  suite.setAutoPadding(false);
-  suite.write(thing, 'hex');
-  suite.end();
-}
 fixtures.forEach(function (fixture, i) {
   //var ciphers = fixture.results.ciphers = {};
   types.forEach(function (cipher) {
@@ -50,7 +34,7 @@ fixtures.forEach(function (fixture, i) {
       var suite2 = _crypto.createCipher(cipher, new Buffer(fixture.password));
       var buf2 = new Buffer('');
       var inbuf = new Buffer(fixture.text);
-      var mid = ~~inbuf.length;
+      var mid = ~~(inbuf.length/2);
       buf = Buffer.concat([buf, suite.update(inbuf.slice(0, mid))]);
       buf2 = Buffer.concat([buf2, suite2.update(inbuf.slice(0, mid))]);
       t.equals(buf.toString('hex'), buf2.toString('hex'), 'intermediate');
@@ -87,7 +71,7 @@ fixtures.forEach(function (fixture, i) {
       var suite2 = _crypto.createDecipher(cipher, new Buffer(fixture.password));
       var buf2 = new Buffer('');
       var inbuf = new Buffer(fixture.results.ciphers[cipher], 'hex');
-      var mid = ~~inbuf.length;
+      var mid = ~~(inbuf.length/2);
       buf = Buffer.concat([buf, suite.update(inbuf.slice(0, mid))]);
       buf2 = Buffer.concat([buf2, suite2.update(inbuf.slice(0, mid))]);
       t.equals(buf.toString('utf8'), buf2.toString('utf8'), 'intermediate');
@@ -127,7 +111,7 @@ fixtures.forEach(function (fixture, i) {
         var suite2 = _crypto.createCipheriv(cipher, ebtk(_crypto, fixture.password, modes[cipher].key).key, new Buffer(fixture.iv, 'hex'));
         var buf2 = new Buffer('');
         var inbuf = new Buffer(fixture.text);
-        var mid = ~~inbuf.length;
+        var mid = ~~(inbuf.length/2);
         buf = Buffer.concat([buf, suite.update(inbuf.slice(0, mid))]);
         buf2 = Buffer.concat([buf2, suite2.update(inbuf.slice(0, mid))]);
         t.equals(buf.toString('hex'), buf2.toString('hex'), 'intermediate');
@@ -162,7 +146,7 @@ fixtures.forEach(function (fixture, i) {
         var suite2 = _crypto.createDecipheriv(cipher, ebtk(_crypto, fixture.password, modes[cipher].key).key, new Buffer(fixture.iv, 'hex'));
         var buf2 = new Buffer('');
         var inbuf = new Buffer(fixture.results.cipherivs[cipher], 'hex');
-        var mid = ~~inbuf.length;
+        var mid = ~~(inbuf.length/2);
         buf = Buffer.concat([buf, suite.update(inbuf.slice(0, mid))]);
         buf2 = Buffer.concat([buf2, suite2.update(inbuf.slice(0, mid))]);
         t.equals(buf.toString('utf8'), buf2.toString('utf8'), 'intermediate');
