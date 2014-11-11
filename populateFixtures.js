@@ -1,7 +1,7 @@
 var modes = require('./modes');
 var fixtures = require('./test/fixtures.json');
 var crypto = require('crypto');
-var types = ['aes-128-cfb8','aes-192-cfb8','aes-256-cfb8'];
+var types = ['aes-128-cfb1','aes-192-cfb1','aes-256-cfb1'];
 var ebtk = require('./EVP_BytesToKey');
 var fs = require('fs');
 

@@ -85,6 +85,27 @@ exports['aes-256-cfb8'] = {
   mode: 'CFB8',
   type: 'stream'
 };
+exports['aes-128-cfb1'] = {
+  cipher: 'AES',
+  key: 128,
+  iv: 16,
+  mode: 'CFB1',
+  type: 'stream'
+};
+exports['aes-192-cfb1'] = {
+  cipher: 'AES',
+  key: 192,
+  iv: 16,
+  mode: 'CFB1',
+  type: 'stream'
+};
+exports['aes-256-cfb1'] = {
+  cipher: 'AES',
+  key: 256,
+  iv: 16,
+  mode: 'CFB1',
+  type: 'stream'
+};
 exports['aes-128-ofb'] = {
   cipher: 'AES',
   key: 128,

@@ -1,4 +1,3 @@
-var xor = require('../xor');
 function encryptByte(self, byte, decrypt) {
   var pad = self._cipher.encryptBlock(self._prev);
   var out = pad[0] ^ byte;
