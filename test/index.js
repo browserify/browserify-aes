@@ -8,6 +8,9 @@ var ebtk = require('../EVP_BytesToKey');
 function isGCM(cipher) {
   return modes[cipher].mode === 'GCM';
 }
+function isNode10() {
+  return process.version && process.version.split('.').length === 3 && parseInt(process.version.split('.')[1], 10) <= 10;
+}
 fixtures.forEach(function (fixture, i) {
   //var ciphers = fixture.results.ciphers = {};
   types.forEach(function (cipher) {
@@ -93,6 +96,9 @@ fixtures.forEach(function (fixture, i) {
 
     types.forEach(function (cipher) {
       if (modes[cipher].mode === 'ECB') {
+        return;
+      }
+      if (isGCM(cipher) && isNode10()) {
         return;
       }
       test('fixture ' + i + ' ' + cipher + '-iv', function (t) {
