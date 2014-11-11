@@ -75,6 +75,7 @@ var modelist = {
   ECB: require('./modes/ecb'),
   CBC: require('./modes/cbc'),
   CFB: require('./modes/cfb'),
+  CFB8: require('./modes/cfb8'),
   OFB: require('./modes/ofb'),
   CTR: require('./modes/ctr'),
   GCM: require('./modes/ctr')
