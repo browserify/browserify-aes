@@ -4,6 +4,7 @@ var inherits = require('inherits');
 var modes = require('./modes');
 var ebtk = require('./EVP_BytesToKey');
 var StreamCipher = require('./streamCipher');
+var AuthCipher = require('./authCipher');
 inherits(Cipher, Transform);
 function Cipher(mode, key, iv) {
   if (!(this instanceof Cipher)) {
@@ -68,7 +69,8 @@ var modelist = {
   CBC: require('./modes/cbc'),
   CFB: require('./modes/cfb'),
   OFB: require('./modes/ofb'),
-  CTR: require('./modes/ctr')
+  CTR: require('./modes/ctr'),
+  GCM: require('./modes/ctr')
 };
 module.exports = function (crypto) {
   function createCipheriv(suite, password, iv) {
@@ -90,6 +92,8 @@ module.exports = function (crypto) {
     }
     if (config.type === 'stream') {
       return new StreamCipher(modelist[config.mode], password, iv);
+    } else if (config.type === 'auth') {
+      return new AuthCipher(modelist[config.mode], password, iv);
     }
     return new Cipher(modelist[config.mode], password, iv);
   }

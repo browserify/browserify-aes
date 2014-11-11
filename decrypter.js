@@ -3,6 +3,7 @@ var Transform = require('./cipherBase');
 var inherits = require('inherits');
 var modes = require('./modes');
 var StreamCipher = require('./streamCipher');
+var AuthCipher = require('./authCipher');
 var ebtk = require('./EVP_BytesToKey');
 
 inherits(Decipher, Transform);
@@ -75,7 +76,8 @@ var modelist = {
   CBC: require('./modes/cbc'),
   CFB: require('./modes/cfb'),
   OFB: require('./modes/ofb'),
-  CTR: require('./modes/ctr')
+  CTR: require('./modes/ctr'),
+  GCM: require('./modes/ctr')
 };
 
 module.exports = function (crypto) {
@@ -98,6 +100,8 @@ module.exports = function (crypto) {
     }
     if (config.type === 'stream') {
       return new StreamCipher(modelist[config.mode], password, iv, true);
+    } else if (config.type === 'auth') {
+      return new AuthCipher(modelist[config.mode], password, iv, true);
     }
     return new Decipher(modelist[config.mode], password, iv);
   }
