@@ -97,10 +97,6 @@ AES.keySize = 256 / 8;
 
 AES.prototype.keySize = AES.keySize;
 
-AES.ivSize = AES.blockSize;
-
-AES.prototype.ivSize = AES.ivSize;
-
  function bufferToArray(buf) {
   var len = buf.length/4;
   var out = new Array(len);
