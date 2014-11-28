@@ -1,3 +1,9 @@
+// based on the aes implimentation in triple sec
+// https://github.com/keybase/triplesec
+
+// which is in turn based on the one from crypto-js
+// https://code.google.com/p/crypto-js/
+
 var uint_max = Math.pow(2, 32);
 function fixup_uint32(x) {
     var ret, x_pos;
