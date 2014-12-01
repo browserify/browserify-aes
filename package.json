@@ -1,6 +1,6 @@
 {
   "name": "browserify-aes",
-  "version": "0.6.0",
+  "version": "0.6.1",
   "description": "aes, for browserify",
   "main": "index.js",
   "directories": {
