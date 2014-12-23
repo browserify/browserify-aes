@@ -438,20 +438,44 @@ function incorectPaddingthrows(padding) {
     }, 'node');
   });
 }
+function incorectPaddingDoesNotThrow(padding) {
+  test('stream incorrect padding ' + padding.toString('hex'), function (t) {
+    t.plan(2);
+    var block1 = new Buffer(16);
+    block1.fill(4);
+    var cipher = crypto.createCipher('aes128', new Buffer('password'));
+    cipher.setAutoPadding(false);
+    var decipher = crypto.createDecipher('aes128', new Buffer('password'));
+    var decipher2 = _crypto.createDecipher('aes128', new Buffer('password'));
+    cipher.pipe(decipher);
+    cipher.pipe(decipher2);
+    cipher.write(block1);
+    cipher.write(padding);
+    decipher.on('error', function (e) {
+      t.ok(e, 'mine');
+    });
+    decipher2.on('error', function (e) {
+      t.ok(e, 'node');
+    });
+    cipher.end();
+  });
+}
 var sixteens2 = new Buffer(16);
 sixteens2.fill(16);
 sixteens2[3] = 5;
 incorectPaddingthrows(sixteens2);
+incorectPaddingDoesNotThrow(sixteens2);
 var fifteens2 = new Buffer(16);
 fifteens2.fill(15);
 fifteens2[0] = 5;
 fifteens2[1] = 6;
 incorectPaddingthrows(fifteens2);
-
+incorectPaddingDoesNotThrow(fifteens2);
 var two = _crypto.randomBytes(16);
 two[15] = 2;
 two[14] = 1;
 incorectPaddingthrows(two);
+incorectPaddingDoesNotThrow(two);
 test('autopadding false decipher', function (t) {
   t.plan(2);
   var mycipher = crypto.createCipher('aes-128-ecb', new Buffer('password'));

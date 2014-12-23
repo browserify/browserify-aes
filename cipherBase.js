@@ -21,9 +21,10 @@ CipherBase.prototype._transform = function (data, _, next) {
   next();
 };
 CipherBase.prototype._flush = function (next) {
-  var chunk = this._final();
-  if (chunk) {
-    this.push(chunk);
+  try {
+    this.push(this._final());
+  } catch(e) {
+    return next(e);
   }
   next();
 };
