@@ -85,7 +85,7 @@ var modelist = {
 };
 module.exports = function (crypto) {
   function createCipheriv(suite, password, iv) {
-    var config = modes[suite];
+    var config = modes[suite.toLowerCase()];
     if (!config) {
       throw new TypeError('invalid suite type');
     }
@@ -109,7 +109,7 @@ module.exports = function (crypto) {
     return new Cipher(modelist[config.mode], password, iv);
   }
   function createCipher (suite, password) {
-    var config = modes[suite];
+    var config = modes[suite.toLowerCase()];
     if (!config) {
       throw new TypeError('invalid suite type');
     }

@@ -101,7 +101,7 @@ var modelist = {
 
 module.exports = function (crypto) {
   function createDecipheriv(suite, password, iv) {
-    var config = modes[suite];
+    var config = modes[suite.toLowerCase()];
     if (!config) {
       throw new TypeError('invalid suite type');
     }
@@ -126,7 +126,7 @@ module.exports = function (crypto) {
   }
 
   function createDecipher (suite, password) {
-    var config = modes[suite];
+    var config = modes[suite.toLowerCase()];
     if (!config) {
       throw new TypeError('invalid suite type');
     }
