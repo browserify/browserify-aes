@@ -478,8 +478,8 @@ incorectPaddingthrows(two);
 incorectPaddingDoesNotThrow(two);
 test('autopadding false decipher', function (t) {
   t.plan(2);
-  var mycipher = crypto.createCipher('aes-128-ecb', new Buffer('password'));
-  var nodecipher = _crypto.createCipher('aes-128-ecb', new Buffer('password'));
+  var mycipher = crypto.createCipher('AES-128-ECB', new Buffer('password'));
+  var nodecipher = _crypto.createCipher('AES-128-ECB', new Buffer('password'));
   var myEnc = mycipher.final();
   var nodeEnc = nodecipher.final();
   t.equals(myEnc.toString('hex'), nodeEnc.toString('hex'), 'same encryption');
