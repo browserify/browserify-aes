@@ -7,9 +7,8 @@ module.exports = function (crypto, exports) {
   exports.createDecipher = deciphers.createDecipher;
   exports.createDecipheriv = deciphers.createDecipheriv;
   var modes = require('./modes');
-  function listCiphers () {
+  function getCiphers () {
     return Object.keys(modes);
   }
-  exports.listCiphers = listCiphers;
+  exports.listCiphers = exports.getCiphers = getCiphers;
 };
-

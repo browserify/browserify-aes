@@ -505,3 +505,8 @@ test('autopadding false cipher throws', function (t) {
     nodecipher.final();
   }, 'node');
 });
+
+test('getCiphers works', function (t) {
+  t.plan(1);
+  t.ok(crypto.getCiphers().length, 'get some ciphers');
+})
