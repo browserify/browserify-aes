@@ -2,6 +2,7 @@
   "name": "browserify-aes",
   "version": "0.8.1",
   "description": "aes, for browserify",
+  "browser": "browser.js",
   "main": "index.js",
   "directories": {
     "test": "test"
@@ -25,6 +26,7 @@
   },
   "homepage": "https://github.com/calvinmetcalf/browserify-aes",
   "dependencies": {
+    "create-hash": "^1.1.0",
     "inherits": "^2.0.1"
   },
   "devDependencies": {
