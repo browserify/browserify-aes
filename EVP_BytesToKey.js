@@ -1,5 +1,9 @@
-
-module.exports = function (crypto, password, keyLen, ivLen) {
+var md5 = require('create-hash/md5');
+module.exports = EVP_BytesToKey;
+function EVP_BytesToKey(password, keyLen, ivLen) {
+  if (!Buffer.isBuffer(password)) {
+    password = new Buffer(password, 'binary');
+  }
   keyLen = keyLen/8;
   ivLen = ivLen || 0;
   var ki = 0;
@@ -7,15 +11,16 @@ module.exports = function (crypto, password, keyLen, ivLen) {
   var key = new Buffer(keyLen);
   var iv = new Buffer(ivLen);
   var addmd = 0;
-  var md, md_buf;
+  var md_buf;
   var i;
+  var bufs =  [];
   while (true) {
-    md = crypto.createHash('md5');
     if(addmd++ > 0) {
-       md.update(md_buf);
+       bufs.push(md_buf);
     }
-    md.update(password);
-    md_buf = md.digest();
+    bufs.push(password);
+    md_buf = md5(Buffer.concat(bufs));
+    bufs = [];
     i = 0;
     if(keyLen > 0) {
       while(true) {
@@ -54,4 +59,4 @@ module.exports = function (crypto, password, keyLen, ivLen) {
     key: key,
     iv: iv
   };
-};
+}

@@ -1,8 +1,7 @@
-var crypto = {createHash: require('create-hash')};
-var ciphers = require('./encrypter')(crypto);
+var ciphers = require('./encrypter');
 exports.createCipher = exports.Cipher = ciphers.createCipher;
 exports.createCipheriv = exports.Cipheriv = ciphers.createCipheriv;
-var deciphers = require('./decrypter')(crypto);
+var deciphers = require('./decrypter');
 exports.createDecipher = exports.Decipher = deciphers.createDecipher;
 exports.createDecipheriv = exports.Decipheriv = deciphers.createDecipheriv;
 var modes = require('./modes');

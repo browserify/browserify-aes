@@ -83,41 +83,39 @@ var modelist = {
   CTR: require('./modes/ctr'),
   GCM: require('./modes/ctr')
 };
-module.exports = function (crypto) {
-  function createCipheriv(suite, password, iv) {
-    var config = modes[suite.toLowerCase()];
-    if (!config) {
-      throw new TypeError('invalid suite type');
-    }
-    if (typeof iv === 'string') {
-      iv = new Buffer(iv);
-    }
-    if (typeof password === 'string') {
-      password = new Buffer(password);
-    }
-    if (password.length !== config.key/8) {
-      throw new TypeError('invalid key length ' + password.length);
-    }
-    if (iv.length !== config.iv) {
-      throw new TypeError('invalid iv length ' + iv.length);
-    }
-    if (config.type === 'stream') {
-      return new StreamCipher(modelist[config.mode], password, iv);
-    } else if (config.type === 'auth') {
-      return new AuthCipher(modelist[config.mode], password, iv);
-    }
-    return new Cipher(modelist[config.mode], password, iv);
+
+function createCipheriv(suite, password, iv) {
+  var config = modes[suite.toLowerCase()];
+  if (!config) {
+    throw new TypeError('invalid suite type');
   }
-  function createCipher (suite, password) {
-    var config = modes[suite.toLowerCase()];
-    if (!config) {
-      throw new TypeError('invalid suite type');
-    }
-    var keys = ebtk(crypto, password, config.key, config.iv);
-    return createCipheriv(suite, keys.key, keys.iv);
+  if (typeof iv === 'string') {
+    iv = new Buffer(iv);
   }
-  return {
-    createCipher: createCipher,
-    createCipheriv: createCipheriv
-  };
-};
+  if (typeof password === 'string') {
+    password = new Buffer(password);
+  }
+  if (password.length !== config.key/8) {
+    throw new TypeError('invalid key length ' + password.length);
+  }
+  if (iv.length !== config.iv) {
+    throw new TypeError('invalid iv length ' + iv.length);
+  }
+  if (config.type === 'stream') {
+    return new StreamCipher(modelist[config.mode], password, iv);
+  } else if (config.type === 'auth') {
+    return new AuthCipher(modelist[config.mode], password, iv);
+  }
+  return new Cipher(modelist[config.mode], password, iv);
+}
+function createCipher (suite, password) {
+  var config = modes[suite.toLowerCase()];
+  if (!config) {
+    throw new TypeError('invalid suite type');
+  }
+  var keys = ebtk(password, config.key, config.iv);
+  return createCipheriv(suite, keys.key, keys.iv);
+}
+
+exports.createCipheriv = createCipheriv;
+exports.createCipher = createCipher;

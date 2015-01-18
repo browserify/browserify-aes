@@ -107,8 +107,8 @@ fixtures.forEach(function (fixture, i) {
         } else {
           t.plan(2);
         }
-        var suite = crypto.createCipheriv(cipher, ebtk(_crypto, fixture.password, modes[cipher].key).key, isGCM(cipher) ? (new Buffer(fixture.iv, 'hex').slice(0, 12)) : (new Buffer(fixture.iv, 'hex')));
-        var suite2 = _crypto.createCipheriv(cipher, ebtk(_crypto, fixture.password, modes[cipher].key).key, isGCM(cipher) ? (new Buffer(fixture.iv, 'hex').slice(0, 12)) : (new Buffer(fixture.iv, 'hex')));
+        var suite = crypto.createCipheriv(cipher, ebtk(fixture.password, modes[cipher].key).key, isGCM(cipher) ? (new Buffer(fixture.iv, 'hex').slice(0, 12)) : (new Buffer(fixture.iv, 'hex')));
+        var suite2 = _crypto.createCipheriv(cipher, ebtk(fixture.password, modes[cipher].key).key, isGCM(cipher) ? (new Buffer(fixture.iv, 'hex').slice(0, 12)) : (new Buffer(fixture.iv, 'hex')));
         var buf = new Buffer('');
         var buf2 = new Buffer('');
         suite.on('data', function (d) {
@@ -147,8 +147,8 @@ fixtures.forEach(function (fixture, i) {
         } else {
           t.plan(4);
         }
-        var suite = crypto.createCipheriv(cipher, ebtk(_crypto, fixture.password, modes[cipher].key).key, isGCM(cipher) ? (new Buffer(fixture.iv, 'hex').slice(0, 12)) : (new Buffer(fixture.iv, 'hex')));
-        var suite2 = _crypto.createCipheriv(cipher, ebtk(_crypto, fixture.password, modes[cipher].key).key, isGCM(cipher) ? (new Buffer(fixture.iv, 'hex').slice(0, 12)) : (new Buffer(fixture.iv, 'hex')));
+        var suite = crypto.createCipheriv(cipher, ebtk(fixture.password, modes[cipher].key).key, isGCM(cipher) ? (new Buffer(fixture.iv, 'hex').slice(0, 12)) : (new Buffer(fixture.iv, 'hex')));
+        var suite2 = _crypto.createCipheriv(cipher, ebtk(fixture.password, modes[cipher].key).key, isGCM(cipher) ? (new Buffer(fixture.iv, 'hex').slice(0, 12)) : (new Buffer(fixture.iv, 'hex')));
         var buf = new Buffer('');
         var buf2 = new Buffer('');
         var inbuf = new Buffer(fixture.text);
@@ -174,9 +174,9 @@ fixtures.forEach(function (fixture, i) {
       });
       test('fixture ' + i + ' ' + cipher + '-iv-decrypt', function (t) {
         t.plan(2);
-        var suite = crypto.createDecipheriv(cipher, ebtk(_crypto, fixture.password, modes[cipher].key).key,  isGCM(cipher) ? (new Buffer(fixture.iv, 'hex').slice(0, 12)) : (new Buffer(fixture.iv, 'hex')));
+        var suite = crypto.createDecipheriv(cipher, ebtk(fixture.password, modes[cipher].key).key,  isGCM(cipher) ? (new Buffer(fixture.iv, 'hex').slice(0, 12)) : (new Buffer(fixture.iv, 'hex')));
         var buf = new Buffer('');
-        var suite2 = _crypto.createDecipheriv(cipher, ebtk(_crypto, fixture.password, modes[cipher].key).key,  isGCM(cipher) ? (new Buffer(fixture.iv, 'hex').slice(0, 12)) : (new Buffer(fixture.iv, 'hex')));
+        var suite2 = _crypto.createDecipheriv(cipher, ebtk(fixture.password, modes[cipher].key).key,  isGCM(cipher) ? (new Buffer(fixture.iv, 'hex').slice(0, 12)) : (new Buffer(fixture.iv, 'hex')));
         var buf2 = new Buffer('');
         suite.on('data', function (d) {
           buf = Buffer.concat([buf, d]);
@@ -208,9 +208,9 @@ fixtures.forEach(function (fixture, i) {
       });
       test('fixture ' + i + ' ' + cipher + '-decrypt-legacy', function (t) {
         t.plan(4);
-        var suite = crypto.createDecipheriv(cipher, ebtk(_crypto, fixture.password, modes[cipher].key).key,  isGCM(cipher) ? (new Buffer(fixture.iv, 'hex').slice(0, 12)) : (new Buffer(fixture.iv, 'hex')));
+        var suite = crypto.createDecipheriv(cipher, ebtk(fixture.password, modes[cipher].key).key,  isGCM(cipher) ? (new Buffer(fixture.iv, 'hex').slice(0, 12)) : (new Buffer(fixture.iv, 'hex')));
         var buf = new Buffer('');
-        var suite2 = _crypto.createDecipheriv(cipher, ebtk(_crypto, fixture.password, modes[cipher].key).key,  isGCM(cipher) ? (new Buffer(fixture.iv, 'hex').slice(0, 12)) : (new Buffer(fixture.iv, 'hex')));
+        var suite2 = _crypto.createDecipheriv(cipher, ebtk(fixture.password, modes[cipher].key).key,  isGCM(cipher) ? (new Buffer(fixture.iv, 'hex').slice(0, 12)) : (new Buffer(fixture.iv, 'hex')));
         var buf2 = new Buffer('');
         var inbuf = new Buffer(fixture.results.cipherivs[cipher], 'hex');
         var mid = ~~(inbuf.length/2);

@@ -99,42 +99,39 @@ var modelist = {
   GCM: require('./modes/ctr')
 };
 
-module.exports = function (crypto) {
-  function createDecipheriv(suite, password, iv) {
-    var config = modes[suite.toLowerCase()];
-    if (!config) {
-      throw new TypeError('invalid suite type');
-    }
-    if (typeof iv === 'string') {
-      iv = new Buffer(iv);
-    }
-    if (typeof password === 'string') {
-      password = new Buffer(password);
-    }
-    if (password.length !== config.key/8) {
-      throw new TypeError('invalid key length ' + password.length);
-    }
-    if (iv.length !== config.iv) {
-      throw new TypeError('invalid iv length ' + iv.length);
-    }
-    if (config.type === 'stream') {
-      return new StreamCipher(modelist[config.mode], password, iv, true);
-    } else if (config.type === 'auth') {
-      return new AuthCipher(modelist[config.mode], password, iv, true);
-    }
-    return new Decipher(modelist[config.mode], password, iv);
-  }
 
-  function createDecipher (suite, password) {
-    var config = modes[suite.toLowerCase()];
-    if (!config) {
-      throw new TypeError('invalid suite type');
-    }
-    var keys = ebtk(crypto, password, config.key, config.iv);
-    return createDecipheriv(suite, keys.key, keys.iv);
+function createDecipheriv(suite, password, iv) {
+  var config = modes[suite.toLowerCase()];
+  if (!config) {
+    throw new TypeError('invalid suite type');
   }
-  return {
-    createDecipher: createDecipher,
-    createDecipheriv: createDecipheriv
-  };
-};
+  if (typeof iv === 'string') {
+    iv = new Buffer(iv);
+  }
+  if (typeof password === 'string') {
+    password = new Buffer(password);
+  }
+  if (password.length !== config.key/8) {
+    throw new TypeError('invalid key length ' + password.length);
+  }
+  if (iv.length !== config.iv) {
+    throw new TypeError('invalid iv length ' + iv.length);
+  }
+  if (config.type === 'stream') {
+    return new StreamCipher(modelist[config.mode], password, iv, true);
+  } else if (config.type === 'auth') {
+    return new AuthCipher(modelist[config.mode], password, iv, true);
+  }
+  return new Decipher(modelist[config.mode], password, iv);
+}
+
+function createDecipher (suite, password) {
+  var config = modes[suite.toLowerCase()];
+  if (!config) {
+    throw new TypeError('invalid suite type');
+  }
+  var keys = ebtk(password, config.key, config.iv);
+  return createDecipheriv(suite, keys.key, keys.iv);
+}
+exports.createDecipher = createDecipher;
+exports.createDecipheriv = createDecipheriv;
