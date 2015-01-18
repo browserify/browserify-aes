@@ -12,7 +12,7 @@
   },
   "repository": {
     "type": "git",
-    "url": "git://github.com/calvinmetcalf/browserify-aes.git"
+    "url": "git://github.com/crypto-browserify/browserify-aes.git"
   },
   "keywords": [
     "aes",
@@ -22,9 +22,9 @@
   "author": "",
   "license": "MIT",
   "bugs": {
-    "url": "https://github.com/calvinmetcalf/browserify-aes/issues"
+    "url": "https://github.com/crypto-browserify/browserify-aes/issues"
   },
-  "homepage": "https://github.com/calvinmetcalf/browserify-aes",
+  "homepage": "https://github.com/crypto-browserify/browserify-aes",
   "dependencies": {
     "create-hash": "^1.1.0",
     "inherits": "^2.0.1"

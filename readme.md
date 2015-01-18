@@ -1,7 +1,7 @@
 browserify-aes
 ====
 
-[![Build Status](https://travis-ci.org/calvinmetcalf/browserify-aes.svg)](https://travis-ci.org/calvinmetcalf/browserify-aes)
+[![Build Status](https://travis-ci.org/crypto-browserify/browserify-aes.svg)](https://travis-ci.org/crypto-browserify/browserify-aes)
 
 Node style aes for use in the browser.  Implements:
 
