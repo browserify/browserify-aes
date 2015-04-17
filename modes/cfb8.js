@@ -1,7 +1,7 @@
-function encryptByte(self, byte, decrypt) {
+function encryptByte(self, byteParam, decrypt) {
   var pad = self._cipher.encryptBlock(self._prev);
-  var out = pad[0] ^ byte;
-  self._prev = Buffer.concat([self._prev.slice(1), new Buffer([decrypt?byte:out])]);
+  var out = pad[0] ^ byteParam;
+  self._prev = Buffer.concat([self._prev.slice(1), new Buffer([decrypt?byteParam:out])]);
   return out;
 }
 exports.encrypt = function (self, chunk, decrypt) {

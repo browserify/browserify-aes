@@ -1,5 +1,5 @@
 
-function encryptByte(self, byte, decrypt) {
+function encryptByte(self, byteParam, decrypt) {
   var pad;
   var i = -1;
   var len = 8;
@@ -7,7 +7,7 @@ function encryptByte(self, byte, decrypt) {
   var bit, value;
   while (++i < len) {
     pad = self._cipher.encryptBlock(self._prev);
-    bit = (byte & (1 << (7-i))) ? 0x80:0;
+    bit = (byteParam & (1 << (7-i))) ? 0x80:0;
     value = pad[0] ^ bit;
     out += ((value&0x80) >> (i%8));
     self._prev = shiftIn(self._prev, decrypt?bit:value);
