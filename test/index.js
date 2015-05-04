@@ -287,7 +287,8 @@ if (!isNode10()) {
             t.equal(hex.toUpperCase(), test.ct)
             t.equal(auth_tag.toString('hex').toUpperCase(), test.tag)
           }
-        })()(function () {
+        })()
+        ;(function () {
           var decrypt = crypto.createDecipheriv(test.algo,
             new Buffer(test.key, 'hex'), new Buffer(test.iv, 'hex'))
           decrypt.setAuthTag(new Buffer(test.tag, 'hex'))
@@ -300,7 +301,8 @@ if (!isNode10()) {
             // assert that final throws if input data could not be verified!
             t.throws(function () { decrypt.final('ascii') }, / auth/)
           }
-        })()(function () {
+        })()
+        ;(function () {
           if (!test.password) return
           var encrypt = crypto.createCipher(test.algo, test.password)
           if (test.aad) encrypt.setAAD(new Buffer(test.aad, 'hex'))
@@ -312,7 +314,8 @@ if (!isNode10()) {
             t.equal(hex.toUpperCase(), test.ct)
             t.equal(auth_tag.toString('hex').toUpperCase(), test.tag)
           }
-        })()(function () {
+        })()
+        ;(function () {
           if (!test.password) return
           var decrypt = crypto.createDecipher(test.algo, test.password)
           decrypt.setAuthTag(new Buffer(test.tag, 'hex'))
@@ -345,20 +348,23 @@ if (!isNode10()) {
           t.throws(function () {
             encrypt.setAAD(new Buffer('123', 'ascii'))
           })
-        })()(function () {
+        })()
+        ;(function () {
           // trying to get tag before inputting all data:
           var encrypt = crypto.createCipheriv(test.algo,
             new Buffer(test.key, 'hex'), new Buffer(test.iv, 'hex'))
           encrypt.update('blah', 'ascii')
           t.throws(function () { encrypt.getAuthTag() }, / state/)
-        })()(function () {
+        })()
+        ;(function () {
           // trying to set tag on encryption object:
           var encrypt = crypto.createCipheriv(test.algo,
             new Buffer(test.key, 'hex'), new Buffer(test.iv, 'hex'))
           t.throws(function () {
             encrypt.setAuthTag(new Buffer(test.tag, 'hex'))
           }, / state/)
-        })()(function () {
+        })()
+        ;(function () {
           // trying to read tag from decryption object:
           var decrypt = crypto.createDecipheriv(test.algo,
             new Buffer(test.key, 'hex'), new Buffer(test.iv, 'hex'))
