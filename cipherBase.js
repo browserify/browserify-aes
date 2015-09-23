@@ -1,11 +1,12 @@
 var Transform = require('stream').Transform
 var inherits = require('inherits')
-
+var StringDecoder = require('string_decoder').StringDecoder
 module.exports = CipherBase
 inherits(CipherBase, Transform)
 function CipherBase () {
   Transform.call(this)
-  this._base64Cache = new Buffer('')
+  this._decoder = null
+  this._encoding = null
 }
 CipherBase.prototype.update = function (data, inputEnc, outputEnc) {
   if (typeof data === 'string') {
@@ -38,29 +39,16 @@ CipherBase.prototype.final = function (outputEnc) {
 }
 
 CipherBase.prototype._toString = function (value, enc, final) {
-  if (enc !== 'base64') {
-    return value.toString(enc)
+  if (!this._decoder) {
+    this._decoder = new StringDecoder(enc)
+    this._encoding = enc
   }
-  this._base64Cache = Buffer.concat([this._base64Cache, value])
-  var out
+  if (this._encoding !== enc) {
+    throw new Error('can\'t switch encodings')
+  }
+  var out = this._decoder.write(value)
   if (final) {
-    out = this._base64Cache
-    this._base64Cache = null
-    return out.toString('base64')
+    out += this._decoder.end()
   }
-  var len = this._base64Cache.length
-  var overhang = len % 3
-  if (!overhang) {
-    out = this._base64Cache
-    this._base64Cache = new Buffer('')
-    return out.toString('base64')
-  }
-  var newLen = len - overhang
-  if (!newLen) {
-    return ''
-  }
-
-  out = this._base64Cache.slice(0, newLen)
-  this._base64Cache = this._base64Cache.slice(-overhang)
-  return out.toString('base64')
+  return out
 }
