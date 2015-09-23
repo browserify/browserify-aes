@@ -530,3 +530,40 @@ test('correctly handle incremental base64 output', function (t) {
   var decrypted = decrypt(encrypted, key)
   t.equals(data, decrypted, 'round trips')
 })
+
+test('handle long uft8 plaintexts', function (t) {
+  t.plan(1)
+  var salt = new Buffer(32)
+  salt.fill(0)
+  function encrypt (txt, passwd) {
+    var cipher = crypto.createCipher('aes-256-cbc', salt)
+    var result = cipher.update(txt, 'utf8', 'base64')
+    result += cipher.final('base64')
+    return result
+  }
+  function decrypt (enc, passwd) {
+    var decipher = crypto.createDecipher('aes-256-cbc', salt)
+
+    return decipher.update(enc, 'base64', 'utf8') + decipher.final('utf8')
+  }
+  var input = 'ふっかつ　あきる　すぶり　はやい　つける　まゆげ　たんさん　みんぞく　ねほりはほり　せまい　たいまつばな　ひはん'
+  var enc = encrypt(input, 'a')
+
+  var dec = decrypt(enc, 'a')
+  t.equals(dec, input)
+})
+
+test('mix and match encoding', function (t) {
+  t.plan(2)
+  var cipher = crypto.createCipher('aes-256-cbc', 'a')
+  cipher.update('foo', 'utf8', 'utf8')
+  t.throws(function () {
+    cipher.update('foo', 'utf8', 'base64')
+  })
+  cipher = crypto.createCipher('aes-256-cbc', 'a')
+  cipher.update('foo', 'utf8', 'base64')
+  t.doesNotThrow(function () {
+    cipher.update('foo', 'utf8')
+    cipher.final('base64')
+  })
+})
