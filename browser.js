@@ -4,7 +4,7 @@ exports.createCipheriv = exports.Cipheriv = ciphers.createCipheriv
 var deciphers = require('./decrypter')
 exports.createDecipher = exports.Decipher = deciphers.createDecipher
 exports.createDecipheriv = exports.Decipheriv = deciphers.createDecipheriv
-var modes = require('./modes')
+var modes = require('./modes.json')
 function getCiphers () {
   return Object.keys(modes)
 }
