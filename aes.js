@@ -81,14 +81,17 @@ AES.keySize = 256 / 8
 AES.prototype.keySize = AES.keySize
 
 function bufferToArray (buf) {
-  var len = buf.length / 4
+  if (!Buffer.isBuffer(buf)) {
+    throw new TypeError('Input must be a Buffer')
+  }
+  var len = (buf.length / 4) | 0
   var out = new Array(len)
-  var i = -1
-  while (++i < len) {
+  for (var i = 0; i < len; i++) {
     out[i] = buf.readUInt32BE(i * 4)
   }
   return out
 }
+
 function AES (key) {
   this._key = bufferToArray(key)
   this._doReset()
