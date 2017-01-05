@@ -81,9 +81,7 @@ AES.keySize = 256 / 8
 AES.prototype.keySize = AES.keySize
 
 function bufferToArray (buf) {
-  if (!Buffer.isBuffer(buf)) {
-    throw new TypeError('Input must be a Buffer')
-  }
+  // Convert unexpected float to int32
   var len = (buf.length / 4) | 0
   var out = new Array(len)
   for (var i = 0; i < len; i++) {
