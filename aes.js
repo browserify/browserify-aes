@@ -81,10 +81,10 @@ AES.keySize = 256 / 8
 AES.prototype.keySize = AES.keySize
 
 function bufferToArray (buf) {
-  var len = buf.length / 4
+  // Convert unexpected float to int
+  var len = (buf.length / 4) | 0
   var out = new Array(len)
-  var i = -1
-  while (++i < len) {
+  for (var i = 0; i < len; i++) {
     out[i] = buf.readUInt32BE(i * 4)
   }
   return out
