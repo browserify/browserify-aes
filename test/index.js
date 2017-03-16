@@ -535,15 +535,12 @@ test('handle long uft8 plaintexts', function (t) {
   t.plan(1)
   var salt = new Buffer(32)
   salt.fill(0)
-  function encrypt (txt, passwd) {
+  function encrypt (txt) {
     var cipher = crypto.createCipher('aes-256-cbc', salt)
-    var result = cipher.update(txt, 'utf8', 'base64')
-    result += cipher.final('base64')
-    return result
+    return cipher.update(txt, 'utf8', 'base64') + cipher.final('base64')
   }
-  function decrypt (enc, passwd) {
+  function decrypt (enc) {
     var decipher = crypto.createDecipher('aes-256-cbc', salt)
-
     return decipher.update(enc, 'base64', 'utf8') + decipher.final('utf8')
   }
   var input = 'ふっかつ　あきる　すぶり　はやい　つける　まゆげ　たんさん　みんぞく　ねほりはほり　せまい　たいまつばな　ひはん'
