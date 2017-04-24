@@ -10,6 +10,7 @@ function fixup_uint32 (x) {
   ret = x > uint_max || x < 0 ? (x_pos = Math.abs(x) % uint_max, x < 0 ? uint_max - x_pos : x_pos) : x
   return ret
 }
+
 function scrub_vec (v) {
   for (var i = 0; i < v.length; v++) {
     v[i] = 0
@@ -81,7 +82,6 @@ AES.keySize = 256 / 8
 AES.prototype.keySize = AES.keySize
 
 function bufferToArray (buf) {
-  // Convert unexpected float to int
   var len = (buf.length / 4) | 0
   var out = new Array(len)
   for (var i = 0; i < len; i++) {
