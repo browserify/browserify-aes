@@ -8,7 +8,8 @@
     "test": "test"
   },
   "scripts": {
-    "test": "standard && node test/index.js|tspec"
+    "test": "node test/index.js",
+    "build": "emcc emcc/aes.c -O1 --memory-init-file 0 -o emcc/aes-build.js -s EXPORTED_FUNCTIONS=\"['_KeyExpansion', '_aes_encrypt', '_aes_decrypt']\""
   },
   "repository": {
     "type": "git",
