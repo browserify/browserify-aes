@@ -5,18 +5,19 @@ var crypto = require('../browser.js')
 var modes = require('../modes')
 var types = Object.keys(modes)
 var ebtk = require('evp_bytestokey')
+
 function isGCM (cipher) {
   return modes[cipher].mode === 'GCM'
 }
+
 function isNode10 () {
   return process.version && process.version.split('.').length === 3 && parseInt(process.version.split('.')[1], 10) <= 10
 }
+
 fixtures.forEach(function (fixture, i) {
-  // var ciphers = fixture.results.ciphers = {}
   types.forEach(function (cipher) {
-    if (isGCM(cipher)) {
-      return
-    }
+    if (isGCM(cipher)) return
+
     test('fixture ' + i + ' ' + cipher, function (t) {
       t.plan(1)
       var suite = crypto.createCipher(cipher, new Buffer(fixture.password))
@@ -36,6 +37,7 @@ fixtures.forEach(function (fixture, i) {
       suite.write(new Buffer(fixture.text))
       suite.end()
     })
+
     test('fixture ' + i + ' ' + cipher + '-legacy', function (t) {
       t.plan(3)
       var suite = crypto.createCipher(cipher, new Buffer(fixture.password))
@@ -54,6 +56,7 @@ fixtures.forEach(function (fixture, i) {
       buf2 = Buffer.concat([buf2, suite2.final()])
       t.equals(buf.toString('hex'), buf2.toString('hex'), 'final')
     })
+
     test('fixture ' + i + ' ' + cipher + '-decrypt', function (t) {
       t.plan(1)
       var suite = crypto.createDecipher(cipher, new Buffer(fixture.password))
@@ -73,6 +76,7 @@ fixtures.forEach(function (fixture, i) {
       suite.write(new Buffer(fixture.results.ciphers[cipher], 'hex'))
       suite.end()
     })
+
     test('fixture ' + i + ' ' + cipher + '-decrypt-legacy', function (t) {
       t.plan(4)
       var suite = crypto.createDecipher(cipher, new Buffer(fixture.password))
@@ -93,35 +97,35 @@ fixtures.forEach(function (fixture, i) {
       t.equals(buf.toString('utf8'), buf2.toString('utf8'), 'final')
     })
   })
+
   types.forEach(function (cipher) {
-    if (modes[cipher].mode === 'ECB') {
-      return
-    }
-    if (isGCM(cipher) && isNode10()) {
-      return
-    }
+    if (modes[cipher].mode === 'ECB') return
+    if (isGCM(cipher) && isNode10()) return
+
     test('fixture ' + i + ' ' + cipher + '-iv', function (t) {
-      if (isGCM(cipher)) {
-        t.plan(4)
-      } else {
-        t.plan(2)
-      }
+      t.plan(isGCM(cipher) ? 4 : 2)
+
       var suite = crypto.createCipheriv(cipher, ebtk(fixture.password, false, modes[cipher].key).key, isGCM(cipher) ? (new Buffer(fixture.iv, 'hex').slice(0, 12)) : (new Buffer(fixture.iv, 'hex')))
       var suite2 = _crypto.createCipheriv(cipher, ebtk(fixture.password, false, modes[cipher].key).key, isGCM(cipher) ? (new Buffer(fixture.iv, 'hex').slice(0, 12)) : (new Buffer(fixture.iv, 'hex')))
       var buf = new Buffer('')
       var buf2 = new Buffer('')
+
       suite.on('data', function (d) {
         buf = Buffer.concat([buf, d])
       })
+
       suite.on('error', function (e) {
         console.log(e)
       })
+
       suite2.on('data', function (d) {
         buf2 = Buffer.concat([buf2, d])
       })
+
       suite2.on('error', function (e) {
         console.log(e)
       })
+
       suite.on('end', function () {
         t.equals(buf.toString('hex'), fixture.results.cipherivs[cipher], 'vs fixture')
         t.equals(buf.toString('hex'), buf2.toString('hex'), 'vs node')
@@ -130,10 +134,12 @@ fixtures.forEach(function (fixture, i) {
           t.equals(suite.getAuthTag().toString('hex'), suite2.getAuthTag().toString('hex'), 'authtag vs node')
         }
       })
+
       if (isGCM(cipher)) {
         suite.setAAD(new Buffer(fixture.aad, 'hex'))
         suite2.setAAD(new Buffer(fixture.aad, 'hex'))
       }
+
       suite2.write(new Buffer(fixture.text))
       suite2.end()
       suite.write(new Buffer(fixture.text))
@@ -141,11 +147,8 @@ fixtures.forEach(function (fixture, i) {
     })
 
     test('fixture ' + i + ' ' + cipher + '-legacy-iv', function (t) {
-      if (isGCM(cipher)) {
-        t.plan(6)
-      } else {
-        t.plan(4)
-      }
+      t.plan(isGCM(cipher) ? 6 : 4)
+
       var suite = crypto.createCipheriv(cipher, ebtk(fixture.password, false, modes[cipher].key).key, isGCM(cipher) ? (new Buffer(fixture.iv, 'hex').slice(0, 12)) : (new Buffer(fixture.iv, 'hex')))
       var suite2 = _crypto.createCipheriv(cipher, ebtk(fixture.password, false, modes[cipher].key).key, isGCM(cipher) ? (new Buffer(fixture.iv, 'hex').slice(0, 12)) : (new Buffer(fixture.iv, 'hex')))
       var buf = new Buffer('')
@@ -156,6 +159,7 @@ fixtures.forEach(function (fixture, i) {
         suite.setAAD(new Buffer(fixture.aad, 'hex'))
         suite2.setAAD(new Buffer(fixture.aad, 'hex'))
       }
+
       buf = Buffer.concat([buf, suite.update(inbuf.slice(0, mid))])
       buf2 = Buffer.concat([buf2, suite2.update(inbuf.slice(0, mid))])
       t.equals(buf.toString('hex'), buf2.toString('hex'), 'intermediate')
@@ -171,28 +175,36 @@ fixtures.forEach(function (fixture, i) {
         t.equals(suite.getAuthTag().toString('hex'), suite2.getAuthTag().toString('hex'), 'authtag vs node')
       }
     })
+
     test('fixture ' + i + ' ' + cipher + '-iv-decrypt', function (t) {
       t.plan(2)
+
       var suite = crypto.createDecipheriv(cipher, ebtk(fixture.password, false, modes[cipher].key).key, isGCM(cipher) ? (new Buffer(fixture.iv, 'hex').slice(0, 12)) : (new Buffer(fixture.iv, 'hex')))
       var buf = new Buffer('')
       var suite2 = _crypto.createDecipheriv(cipher, ebtk(fixture.password, false, modes[cipher].key).key, isGCM(cipher) ? (new Buffer(fixture.iv, 'hex').slice(0, 12)) : (new Buffer(fixture.iv, 'hex')))
       var buf2 = new Buffer('')
+
       suite.on('data', function (d) {
         buf = Buffer.concat([buf, d])
       })
+
       suite.on('error', function (e) {
         t.notOk(e)
       })
+
       suite2.on('data', function (d) {
         buf2 = Buffer.concat([buf2, d])
       })
+
       suite2.on('error', function (e) {
         t.notOk(e)
       })
+
       suite.on('end', function () {
         t.equals(buf.toString('utf8'), fixture.text, 'correct text vs fixture')
         t.equals(buf.toString('utf8'), buf2.toString('utf8'), 'correct text vs node')
       })
+
       if (isGCM(cipher)) {
         suite.setAuthTag(new Buffer(fixture.authtag[cipher], 'hex'))
         suite2.setAuthTag(new Buffer(fixture.authtag[cipher], 'hex'))
@@ -237,31 +249,51 @@ fixtures.forEach(function (fixture, i) {
 if (!isNode10()) {
   test('node tests', function (t) {
     var TEST_CASES = [
-      { algo: 'aes-128-gcm', key: '6970787039613669314d623455536234',
-        iv: '583673497131313748307652', plain: 'Hello World!',
+      { algo: 'aes-128-gcm',
+        key: '6970787039613669314d623455536234',
+        iv: '583673497131313748307652',
+        plain: 'Hello World!',
         ct: '4BE13896F64DFA2C2D0F2C76',
-      tag: '272B422F62EB545EAA15B5FF84092447', tampered: false },
-      { algo: 'aes-128-gcm', key: '6970787039613669314d623455536234',
-        iv: '583673497131313748307652', plain: 'Hello World!',
-        ct: '4BE13896F64DFA2C2D0F2C76', aad: '000000FF',
-      tag: 'BA2479F66275665A88CB7B15F43EB005', tampered: false },
-      { algo: 'aes-128-gcm', key: '6970787039613669314d623455536234',
-        iv: '583673497131313748307652', plain: 'Hello World!',
+        tag: '272B422F62EB545EAA15B5FF84092447',
+        tampered: false },
+      { algo: 'aes-128-gcm',
+        key: '6970787039613669314d623455536234',
+        iv: '583673497131313748307652',
+        plain: 'Hello World!',
+        ct: '4BE13896F64DFA2C2D0F2C76',
+        aad: '000000FF',
+        tag: 'BA2479F66275665A88CB7B15F43EB005',
+        tampered: false },
+      { algo: 'aes-128-gcm',
+        key: '6970787039613669314d623455536234',
+        iv: '583673497131313748307652',
+        plain: 'Hello World!',
         ct: '4BE13596F64DFA2C2D0FAC76',
-      tag: '272B422F62EB545EAA15B5FF84092447', tampered: true },
-      { algo: 'aes-256-gcm', key: '337a54767a7233703637564336316a6d56353472495975313534357834546c59',
-        iv: '36306950306836764a6f4561', plain: 'Hello node.js world!',
+        tag: '272B422F62EB545EAA15B5FF84092447',
+        tampered: true },
+      { algo: 'aes-256-gcm',
+        key: '337a54767a7233703637564336316a6d56353472495975313534357834546c59',
+        iv: '36306950306836764a6f4561',
+        plain: 'Hello node.js world!',
         ct: '58E62CFE7B1D274111A82267EBB93866E72B6C2A',
-      tag: '9BB44F663BADABACAE9720881FB1EC7A', tampered: false },
-      { algo: 'aes-256-gcm', key: '337a54767a7233703637564336316a6d56353472495975313534357834546c59',
-        iv: '36306950306836764a6f4561', plain: 'Hello node.js world!',
+        tag: '9BB44F663BADABACAE9720881FB1EC7A',
+        tampered: false },
+      { algo: 'aes-256-gcm',
+        key: '337a54767a7233703637564336316a6d56353472495975313534357834546c59',
+        iv: '36306950306836764a6f4561',
+        plain: 'Hello node.js world!',
         ct: '58E62CFF7B1D274011A82267EBB93866E72B6C2B',
-      tag: '9BB44F663BADABACAE9720881FB1EC7A', tampered: true },
-      { algo: 'aes-192-gcm', key: '1ed2233fa2223ef5d7df08546049406c7305220bca40d4c9',
-        iv: '0e1791e9db3bd21a9122c416', plain: 'Hello node.js world!',
-        password: 'very bad password', aad: '63616c76696e',
+        tag: '9BB44F663BADABACAE9720881FB1EC7A',
+        tampered: true },
+      { algo: 'aes-192-gcm',
+        key: '1ed2233fa2223ef5d7df08546049406c7305220bca40d4c9',
+        iv: '0e1791e9db3bd21a9122c416',
+        plain: 'Hello node.js world!',
+        password: 'very bad password',
+        aad: '63616c76696e',
         ct: 'DDA53A4059AA17B88756984995F7BBA3C636CC44',
-      tag: 'D2A35E5C611E5E3D2258360241C5B045', tampered: false }
+        tag: 'D2A35E5C611E5E3D2258360241C5B045',
+        tampered: false }
     ]
 
     var ciphers = Object.keys(modes)
@@ -281,13 +313,15 @@ if (!isNode10()) {
 
           var hex = encrypt.update(test.plain, 'ascii', 'hex')
           hex += encrypt.final('hex')
-          var auth_tag = encrypt.getAuthTag()
+          var authTag = encrypt.getAuthTag()
+
           // only test basic encryption run if output is marked as tampered.
           if (!test.tampered) {
             t.equal(hex.toUpperCase(), test.ct)
-            t.equal(auth_tag.toString('hex').toUpperCase(), test.tag)
+            t.equal(authTag.toString('hex').toUpperCase(), test.tag)
           }
         })()
+
         ;(function () {
           var decrypt = crypto.createDecipheriv(test.algo,
             new Buffer(test.key, 'hex'), new Buffer(test.iv, 'hex'))
@@ -302,19 +336,21 @@ if (!isNode10()) {
             t.throws(function () { decrypt.final('ascii') }, / auth/)
           }
         })()
+
         ;(function () {
           if (!test.password) return
           var encrypt = crypto.createCipher(test.algo, test.password)
           if (test.aad) encrypt.setAAD(new Buffer(test.aad, 'hex'))
           var hex = encrypt.update(test.plain, 'ascii', 'hex')
           hex += encrypt.final('hex')
-          var auth_tag = encrypt.getAuthTag()
+          var authTag = encrypt.getAuthTag()
           // only test basic encryption run if output is marked as tampered.
           if (!test.tampered) {
             t.equal(hex.toUpperCase(), test.ct)
-            t.equal(auth_tag.toString('hex').toUpperCase(), test.tag)
+            t.equal(authTag.toString('hex').toUpperCase(), test.tag)
           }
         })()
+
         ;(function () {
           if (!test.password) return
           var decrypt = crypto.createDecipher(test.algo, test.password)
@@ -349,6 +385,7 @@ if (!isNode10()) {
             encrypt.setAAD(new Buffer('123', 'ascii'))
           })
         })()
+
         ;(function () {
           // trying to get tag before inputting all data:
           var encrypt = crypto.createCipheriv(test.algo,
@@ -356,6 +393,7 @@ if (!isNode10()) {
           encrypt.update('blah', 'ascii')
           t.throws(function () { encrypt.getAuthTag() }, / state/)
         })()
+
         ;(function () {
           // trying to set tag on encryption object:
           var encrypt = crypto.createCipheriv(test.algo,
@@ -364,6 +402,7 @@ if (!isNode10()) {
             encrypt.setAuthTag(new Buffer(test.tag, 'hex'))
           }, / state/)
         })()
+
         ;(function () {
           // trying to read tag from decryption object:
           var decrypt = crypto.createDecipheriv(test.algo,
@@ -373,11 +412,13 @@ if (!isNode10()) {
         t.end()
       })
     }
+
     for (var i in TEST_CASES) {
       testIt(i)
     }
   })
 }
+
 function corectPaddingWords (padding, result) {
   test('correct padding ' + padding.toString('hex'), function (t) {
     t.plan(1)
@@ -428,6 +469,7 @@ function incorectPaddingthrows (padding) {
     }, 'node')
   })
 }
+
 function incorectPaddingDoesNotThrow (padding) {
   test('stream incorrect padding ' + padding.toString('hex'), function (t) {
     t.plan(2)
@@ -450,6 +492,7 @@ function incorectPaddingDoesNotThrow (padding) {
     cipher.end()
   })
 }
+
 var sixteens2 = new Buffer(16)
 sixteens2.fill(16)
 sixteens2[3] = 5
@@ -466,6 +509,7 @@ two[15] = 2
 two[14] = 1
 incorectPaddingthrows(two)
 incorectPaddingDoesNotThrow(two)
+
 test('autopadding false decipher', function (t) {
   t.plan(2)
   var mycipher = crypto.createCipher('AES-128-ECB', new Buffer('password'))
@@ -482,15 +526,18 @@ test('autopadding false decipher', function (t) {
 
 test('autopadding false cipher throws', function (t) {
   t.plan(2)
+
   var mycipher = crypto.createCipher('aes-128-ecb', new Buffer('password'))
   mycipher.setAutoPadding(false)
   var nodecipher = _crypto.createCipher('aes-128-ecb', new Buffer('password'))
   nodecipher.setAutoPadding(false)
   mycipher.update('foo')
   nodecipher.update('foo')
+
   t.throws(function () {
     mycipher.final()
   }, 'mine')
+
   t.throws(function () {
     nodecipher.final()
   }, 'node')
@@ -503,6 +550,7 @@ test('getCiphers works', function (t) {
 
 test('correctly handle incremental base64 output', function (t) {
   t.plan(2)
+
   var encoding = 'base64'
   function encrypt (data, key, algorithm) {
     algorithm = algorithm || 'aes256'
@@ -511,6 +559,7 @@ test('correctly handle incremental base64 output', function (t) {
     var part2 = cipher.final(encoding)
     return part1 + part2
   }
+
   function encryptNode (data, key, algorithm) {
     algorithm = algorithm || 'aes256'
     var cipher = _crypto.createCipher(algorithm, key)
@@ -518,11 +567,13 @@ test('correctly handle incremental base64 output', function (t) {
     var part2 = cipher.final(encoding)
     return part1 + part2
   }
+
   function decrypt (data, key, algorithm) {
     algorithm = algorithm || 'aes256'
     var decipher = crypto.createDecipher(algorithm, key)
     return decipher.update(data, encoding, 'utf8') + decipher.final('utf8')
   }
+
   var key = 'this is a very secure key'
   var data = 'The quick brown fox jumps over the lazy dog.'
   var encrypted = encrypt(data, key)
@@ -535,14 +586,17 @@ test('handle long uft8 plaintexts', function (t) {
   t.plan(1)
   var salt = new Buffer(32)
   salt.fill(0)
+
   function encrypt (txt) {
     var cipher = crypto.createCipher('aes-256-cbc', salt)
     return cipher.update(txt, 'utf8', 'base64') + cipher.final('base64')
   }
+
   function decrypt (enc) {
     var decipher = crypto.createDecipher('aes-256-cbc', salt)
     return decipher.update(enc, 'base64', 'utf8') + decipher.final('utf8')
   }
+
   var input = 'ふっかつ　あきる　すぶり　はやい　つける　まゆげ　たんさん　みんぞく　ねほりはほり　せまい　たいまつばな　ひはん'
   var enc = encrypt(input, 'a')
 
