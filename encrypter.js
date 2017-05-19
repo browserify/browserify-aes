@@ -1,3 +1,4 @@
+var MODES = require('./modes')
 var AuthCipher = require('./authCipher')
 var Buffer = require('safe-buffer').Buffer
 var StreamCipher = require('./streamCipher')
@@ -5,7 +6,6 @@ var Transform = require('cipher-base')
 var aes = require('./aes')
 var ebtk = require('evp_bytestokey')
 var inherits = require('inherits')
-var modes = require('./modes.json')
 
 function Cipher (mode, key, iv) {
   Transform.call(this)
@@ -83,19 +83,8 @@ Splitter.prototype.flush = function () {
   return Buffer.concat([this.cache, padBuff])
 }
 
-var modelist = {
-  ECB: require('./modes/ecb'),
-  CBC: require('./modes/cbc'),
-  CFB: require('./modes/cfb'),
-  CFB8: require('./modes/cfb8'),
-  CFB1: require('./modes/cfb1'),
-  OFB: require('./modes/ofb'),
-  CTR: require('./modes/ctr'),
-  GCM: require('./modes/ctr')
-}
-
 function createCipheriv (suite, password, iv) {
-  var config = modes[suite.toLowerCase()]
+  var config = MODES[suite.toLowerCase()]
   if (!config) throw new TypeError('invalid suite type')
 
   if (typeof password === 'string') password = Buffer.from(password)
@@ -105,16 +94,16 @@ function createCipheriv (suite, password, iv) {
   if (iv.length !== config.iv) throw new TypeError('invalid iv length ' + iv.length)
 
   if (config.type === 'stream') {
-    return new StreamCipher(modelist[config.mode], password, iv)
+    return new StreamCipher(config.module, password, iv)
   } else if (config.type === 'auth') {
-    return new AuthCipher(modelist[config.mode], password, iv)
+    return new AuthCipher(config.module, password, iv)
   }
 
-  return new Cipher(modelist[config.mode], password, iv)
+  return new Cipher(config.module, password, iv)
 }
 
 function createCipher (suite, password) {
-  var config = modes[suite.toLowerCase()]
+  var config = MODES[suite.toLowerCase()]
   if (!config) throw new TypeError('invalid suite type')
 
   var keys = ebtk(password, false, config.key, config.iv)

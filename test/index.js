@@ -540,7 +540,7 @@ test('autopadding false cipher throws', function (t) {
 
   t.throws(function () {
     nodecipher.final()
-  }, 'node')
+  }, /./)
 })
 
 test('getCiphers works', function (t) {
