@@ -8,7 +8,6 @@ var inherits = require('inherits')
 var modes = require('./modes.json')
 
 function Cipher (mode, key, iv) {
-  if (!(this instanceof Cipher)) return new Cipher(mode, key, iv)
   Transform.call(this)
 
   this._cache = new Splitter()
@@ -17,6 +16,7 @@ function Cipher (mode, key, iv) {
   this._mode = mode
   this._autopadding = true
 }
+
 inherits(Cipher, Transform)
 
 Cipher.prototype._update = function (data) {
@@ -92,34 +92,27 @@ var modelist = {
 
 function createCipheriv (suite, password, iv) {
   var config = modes[suite.toLowerCase()]
-  if (!config) {
-    throw new TypeError('invalid suite type')
-  }
-  if (typeof iv === 'string') {
-    iv = Buffer.from(iv)
-  }
-  if (typeof password === 'string') {
-    password = Buffer.from(password)
-  }
-  if (password.length !== config.key / 8) {
-    throw new TypeError('invalid key length ' + password.length)
-  }
-  if (iv.length !== config.iv) {
-    throw new TypeError('invalid iv length ' + iv.length)
-  }
+  if (!config) throw new TypeError('invalid suite type')
+
+  if (typeof password === 'string') password = Buffer.from(password)
+  if (password.length !== config.key / 8) throw new TypeError('invalid key length ' + password.length)
+
+  if (typeof iv === 'string') iv = Buffer.from(iv)
+  if (iv.length !== config.iv) throw new TypeError('invalid iv length ' + iv.length)
+
   if (config.type === 'stream') {
     return new StreamCipher(modelist[config.mode], password, iv)
   } else if (config.type === 'auth') {
     return new AuthCipher(modelist[config.mode], password, iv)
   }
+
   return new Cipher(modelist[config.mode], password, iv)
 }
 
 function createCipher (suite, password) {
   var config = modes[suite.toLowerCase()]
-  if (!config) {
-    throw new TypeError('invalid suite type')
-  }
+  if (!config) throw new TypeError('invalid suite type')
+
   var keys = ebtk(password, false, config.key, config.iv)
   return createCipheriv(suite, keys.key, keys.iv)
 }
