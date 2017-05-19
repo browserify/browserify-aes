@@ -1,6 +1,6 @@
 var ciphers = require('./encrypter')
 var deciphers = require('./decrypter')
-var modes = require('./modes.json')
+var modes = require('./modes/list.json')
 
 function getCiphers () {
   return Object.keys(modes)

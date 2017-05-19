@@ -1,4 +1,4 @@
-var modes = require('./modes.json')
+var modes = require('./modes/list.json')
 var fixtures = require('./test/fixtures.json')
 var crypto = require('crypto')
 var types = ['aes-128-cfb1', 'aes-192-cfb1', 'aes-256-cfb1']
