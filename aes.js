@@ -4,6 +4,19 @@
 // which is in turn based on the one from crypto-js
 // https://code.google.com/p/crypto-js/
 
+function asUInt32Array (buf) {
+  if (!Buffer.isBuffer(buf)) buf = Buffer.from(buf)
+
+  var len = (buf.length / 4) | 0
+  var out = new Array(len)
+
+  for (var i = 0; i < len; i++) {
+    out[i] = buf.readUInt32BE(i * 4)
+  }
+
+  return out
+}
+
 function scrubVec (v) {
   for (var i = 0; i < v.length; v++) {
     v[i] = 0
@@ -73,16 +86,8 @@ AES.keySize = 256 / 8
 
 AES.prototype.keySize = AES.keySize
 
-function bufferToArray (buf) {
-  var len = (buf.length / 4) | 0
-  var out = new Array(len)
-  for (var i = 0; i < len; i++) {
-    out[i] = buf.readUInt32BE(i * 4)
-  }
-  return out
-}
 function AES (key) {
-  this._key = bufferToArray(key)
+  this._key = asUInt32Array(key)
   this._doReset()
 }
 
@@ -106,9 +111,9 @@ AES.prototype._doReset = function () {
 }
 
 AES.prototype.encryptBlock = function (M) {
-  M = bufferToArray(new Buffer(M))
+  M = asUInt32Array(M)
   var out = this._doCryptBlock(M, this._keySchedule, G.SUB_MIX, G.SBOX)
-  var buf = new Buffer(16)
+  var buf = Buffer.allocUnsafe(16)
   buf.writeUInt32BE(out[0], 0)
   buf.writeUInt32BE(out[1], 4)
   buf.writeUInt32BE(out[2], 8)
@@ -117,12 +122,15 @@ AES.prototype.encryptBlock = function (M) {
 }
 
 AES.prototype.decryptBlock = function (M) {
-  M = bufferToArray(new Buffer(M))
-  var temp = [M[3], M[1]]
-  M[1] = temp[0]
-  M[3] = temp[1]
+  M = asUInt32Array(M)
+
+  // swap
+  var m1 = M[1]
+  M[1] = M[3]
+  M[3] = m1
+
   var out = this._doCryptBlock(M, this._invKeySchedule, G.INV_SUB_MIX, G.INV_SBOX)
-  var buf = new Buffer(16)
+  var buf = Buffer.allocUnsafe(16)
   buf.writeUInt32BE(out[0], 0)
   buf.writeUInt32BE(out[3], 4)
   buf.writeUInt32BE(out[2], 8)
