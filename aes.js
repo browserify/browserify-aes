@@ -99,25 +99,44 @@ function AES (key) {
 }
 
 AES.prototype._doReset = function () {
-  var keySize, keyWords, ksRows, t
+  var keySize, keyWords, ksRows
   keyWords = this._key
   keySize = keyWords.length
   this._nRounds = keySize + 6
   ksRows = (this._nRounds + 1) * 4
-  this._keySchedule = []
 
+  var keySchedule = []
   for (var k = 0; k < keySize; k++) {
-    this._keySchedule[k] = keyWords[k]
+    keySchedule[k] = keyWords[k]
   }
 
   for (k = keySize; k < ksRows; k++) {
-    this._keySchedule[k] = (t = this._keySchedule[k - 1], (k % keySize) === 0 ? (t = (t << 8) | (t >>> 24), t = (G.SBOX[t >>> 24] << 24) | (G.SBOX[(t >>> 16) & 0xff] << 16) | (G.SBOX[(t >>> 8) & 0xff] << 8) | G.SBOX[t & 0xff], t ^= RCON[(k / keySize) | 0] << 24) : keySize > 6 && k % keySize === 4 ? t = (G.SBOX[t >>> 24] << 24) | (G.SBOX[(t >>> 16) & 0xff] << 16) | (G.SBOX[(t >>> 8) & 0xff] << 8) | G.SBOX[t & 0xff] : void 0, this._keySchedule[k - keySize] ^ t)
+    var t = keySchedule[k - 1]
+
+    if (k % keySize === 0) {
+      t = (t << 8) | (t >>> 24)
+      t =
+        (G.SBOX[t >>> 24] << 24) |
+        (G.SBOX[(t >>> 16) & 0xff] << 16) |
+        (G.SBOX[(t >>> 8) & 0xff] << 8) |
+        (G.SBOX[t & 0xff])
+
+      t ^= RCON[(k / keySize) | 0] << 24
+    } else if (keySize > 6 && k % keySize === 4) {
+      t =
+        (G.SBOX[t >>> 24] << 24) |
+        (G.SBOX[(t >>> 16) & 0xff] << 16) |
+        (G.SBOX[(t >>> 8) & 0xff] << 8) |
+        (G.SBOX[t & 0xff])
+    }
+
+    keySchedule[k] = keySchedule[k - keySize] ^ t
   }
 
   var invKeySchedule = []
   for (var ik = 0; ik < ksRows; ik++) {
     var ksR = ksRows - ik
-    var tt = this._keySchedule[ksR - (ik % 4 ? 0 : 4)]
+    var tt = keySchedule[ksR - (ik % 4 ? 0 : 4)]
 
     if (ik < 4 || ksR <= 4) {
       invKeySchedule[ik] = tt
@@ -130,6 +149,7 @@ AES.prototype._doReset = function () {
     }
   }
 
+  this._keySchedule = keySchedule
   this._invKeySchedule = invKeySchedule
   return true
 }
