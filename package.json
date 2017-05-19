@@ -8,7 +8,9 @@
     "test": "test"
   },
   "scripts": {
-    "test": "standard && node test/index.js|tspec"
+    "standard": "standard",
+    "unit": "node test/index.js | tspec",
+    "test": "npm run standard && npm run unit"
   },
   "repository": {
     "type": "git",
