@@ -536,7 +536,7 @@ test('autopadding false cipher throws', function (t) {
 
   t.throws(function () {
     mycipher.final()
-  }, 'mine')
+  }, /data not multiple of block length/)
 
   t.throws(function () {
     nodecipher.final()
