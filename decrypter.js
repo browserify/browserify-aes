@@ -15,8 +15,7 @@ function Decipher (mode, key, iv) {
   this._cache = new Splitter()
   this._last = void 0
   this._cipher = new aes.AES(key)
-  this._prev = new Buffer(iv.length)
-  iv.copy(this._prev)
+  this._prev = Buffer.from(iv)
   this._mode = mode
   this._autopadding = true
 }
@@ -43,12 +42,11 @@ Decipher.prototype.setAutoPadding = function (setTo) {
   this._autopadding = !!setTo
   return this
 }
+
 function Splitter () {
-  if (!(this instanceof Splitter)) {
-    return new Splitter()
-  }
-  this.cache = new Buffer('')
+  this.cache = Buffer.allocUnsafe(0)
 }
+
 Splitter.prototype.add = function (data) {
   this.cache = Buffer.concat([this.cache, data])
 }
@@ -68,13 +66,16 @@ Splitter.prototype.get = function (autoPadding) {
       return out
     }
   }
+
   return null
 }
+
 Splitter.prototype.flush = function () {
   if (this.cache.length) {
     return this.cache
   }
 }
+
 function unpad (last) {
   var padded = last[15]
   var i = -1
@@ -83,9 +84,8 @@ function unpad (last) {
       throw new Error('unable to decrypt data')
     }
   }
-  if (padded === 16) {
-    return
-  }
+  if (padded === 16) return
+
   return last.slice(0, 16 - padded)
 }
 
@@ -106,10 +106,10 @@ function createDecipheriv (suite, password, iv) {
     throw new TypeError('invalid suite type')
   }
   if (typeof iv === 'string') {
-    iv = new Buffer(iv)
+    iv = Buffer.from(iv)
   }
   if (typeof password === 'string') {
-    password = new Buffer(password)
+    password = Buffer.from(password)
   }
   if (password.length !== config.key / 8) {
     throw new TypeError('invalid key length ' + password.length)

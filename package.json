@@ -32,7 +32,8 @@
     "cipher-base": "^1.0.0",
     "create-hash": "^1.1.0",
     "evp_bytestokey": "^1.0.0",
-    "inherits": "^2.0.1"
+    "inherits": "^2.0.1",
+    "safe-buffer": "^5.0.1"
   },
   "devDependencies": {
     "standard": "^9.0.0",
