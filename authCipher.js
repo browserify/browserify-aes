@@ -4,11 +4,20 @@ var Transform = require('cipher-base')
 var inherits = require('inherits')
 var GHASH = require('./ghash')
 var xor = require('buffer-xor')
-inherits(StreamCipher, Transform)
-module.exports = StreamCipher
+
+function xorTest (a, b) {
+  var out = 0
+  if (a.length !== b.length) out++
+
+  var len = Math.min(a.length, b.length)
+  for (var i = 0; i < len; ++i) {
+    out += (a[i] ^ b[i])
+  }
+
+  return out
+}
 
 function StreamCipher (mode, key, iv, decrypt) {
-  if (!(this instanceof StreamCipher)) return new StreamCipher(mode, key, iv)
   Transform.call(this)
 
   this._finID = Buffer.concat([iv, Buffer.from([0, 0, 0, 1])])
@@ -29,6 +38,8 @@ function StreamCipher (mode, key, iv, decrypt) {
   this._called = false
 }
 
+inherits(StreamCipher, Transform)
+
 StreamCipher.prototype._update = function (chunk) {
   if (!this._called && this._alen) {
     var rump = 16 - (this._alen % 16)
@@ -38,6 +49,7 @@ StreamCipher.prototype._update = function (chunk) {
       this._ghash.update(rump)
     }
   }
+
   this._called = true
   var out = this._mode.encrypt(this, chunk)
   if (this._decrypt) {
@@ -78,15 +90,4 @@ StreamCipher.prototype.setAAD = function setAAD (buf) {
   this._alen += buf.length
 }
 
-function xorTest (a, b) {
-  var out = 0
-  if (a.length !== b.length) {
-    out++
-  }
-  var len = Math.min(a.length, b.length)
-  var i = -1
-  while (++i < len) {
-    out += (a[i] ^ b[i])
-  }
-  return out
-}
+module.exports = StreamCipher
