@@ -4,7 +4,6 @@ var Transform = require('cipher-base')
 var inherits = require('inherits')
 
 function StreamCipher (mode, key, iv, decrypt) {
-  if (!(this instanceof StreamCipher)) return new StreamCipher(mode, key, iv)
   Transform.call(this)
 
   this._cipher = new aes.AES(key)
