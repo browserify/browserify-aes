@@ -5,7 +5,7 @@ var fixtures2 = require('./extra.json')
 var _crypto = require('crypto')
 var crypto = require('../browser.js')
 var modes = require('../modes')
-var types = Object.keys(modes)
+var CIPHERS = Object.keys(modes)
 var ebtk = require('evp_bytestokey')
 
 function isGCM (cipher) {
@@ -17,7 +17,7 @@ function isNode10 () {
 }
 
 fixtures.forEach(function (fixture, i) {
-  types.forEach(function (cipher) {
+  CIPHERS.forEach(function (cipher) {
     if (isGCM(cipher)) return
 
     test('fixture ' + i + ' ' + cipher, function (t) {
@@ -100,7 +100,7 @@ fixtures.forEach(function (fixture, i) {
     })
   })
 
-  types.forEach(function (cipher) {
+  CIPHERS.forEach(function (cipher) {
     if (modes[cipher].mode === 'ECB') return
     if (isGCM(cipher) && isNode10()) return
 
@@ -248,11 +248,9 @@ fixtures.forEach(function (fixture, i) {
   })
 })
 
-var ciphers = Object.keys(modes)
-
 fixtures2.forEach((f, i) => {
   test('test case ' + i, function (t) {
-    if (ciphers.indexOf(f.algo) === -1) {
+    if (CIPHERS.indexOf(f.algo) === -1) {
       console.log('skipping unsupported ' + f.algo + ' test')
       return
     }
