@@ -28,7 +28,7 @@
   },
   "homepage": "https://github.com/crypto-browserify/browserify-aes",
   "dependencies": {
-    "buffer-xor": "^1.0.2",
+    "buffer-xor": "^1.0.3",
     "cipher-base": "^1.0.0",
     "create-hash": "^1.1.0",
     "evp_bytestokey": "^1.0.0",
