@@ -1,3 +1,4 @@
+var Buffer = require('safe-buffer').Buffer
 var test = require('tape')
 var fixtures = require('./fixtures.json')
 var _crypto = require('crypto')
@@ -20,8 +21,8 @@ fixtures.forEach(function (fixture, i) {
 
     test('fixture ' + i + ' ' + cipher, function (t) {
       t.plan(1)
-      var suite = crypto.createCipher(cipher, new Buffer(fixture.password))
-      var buf = new Buffer('')
+      var suite = crypto.createCipher(cipher, Buffer.from(fixture.password))
+      var buf = Buffer.alloc(0)
       suite.on('data', function (d) {
         buf = Buffer.concat([buf, d])
       })
@@ -30,21 +31,21 @@ fixtures.forEach(function (fixture, i) {
       })
       suite.on('end', function () {
         // console.log(fixture.text)
-        // decriptNoPadding(cipher, new Buffer(fixture.password), buf.toString('hex'), 'a')
-        // decriptNoPadding(cipher, new Buffer(fixture.password), fixture.results.ciphers[cipher], 'b')
+        // decriptNoPadding(cipher, Buffer.from(fixture.password), buf.toString('hex'), 'a')
+        // decriptNoPadding(cipher, Buffer.from(fixture.password), fixture.results.ciphers[cipher], 'b')
         t.equals(buf.toString('hex'), fixture.results.ciphers[cipher])
       })
-      suite.write(new Buffer(fixture.text))
+      suite.write(Buffer.from(fixture.text))
       suite.end()
     })
 
     test('fixture ' + i + ' ' + cipher + '-legacy', function (t) {
       t.plan(3)
-      var suite = crypto.createCipher(cipher, new Buffer(fixture.password))
-      var buf = new Buffer('')
-      var suite2 = _crypto.createCipher(cipher, new Buffer(fixture.password))
-      var buf2 = new Buffer('')
-      var inbuf = new Buffer(fixture.text)
+      var suite = crypto.createCipher(cipher, Buffer.from(fixture.password))
+      var buf = Buffer.alloc(0)
+      var suite2 = _crypto.createCipher(cipher, Buffer.from(fixture.password))
+      var buf2 = Buffer.alloc(0)
+      var inbuf = Buffer.from(fixture.text)
       var mid = ~~(inbuf.length / 2)
       buf = Buffer.concat([buf, suite.update(inbuf.slice(0, mid))])
       buf2 = Buffer.concat([buf2, suite2.update(inbuf.slice(0, mid))])
@@ -59,8 +60,8 @@ fixtures.forEach(function (fixture, i) {
 
     test('fixture ' + i + ' ' + cipher + '-decrypt', function (t) {
       t.plan(1)
-      var suite = crypto.createDecipher(cipher, new Buffer(fixture.password))
-      var buf = new Buffer('')
+      var suite = crypto.createDecipher(cipher, Buffer.from(fixture.password))
+      var buf = Buffer.alloc(0)
       suite.on('data', function (d) {
         buf = Buffer.concat([buf, d])
       })
@@ -69,21 +70,21 @@ fixtures.forEach(function (fixture, i) {
       })
       suite.on('end', function () {
         // console.log(fixture.text)
-        // decriptNoPadding(cipher, new Buffer(fixture.password), buf.toString('hex'), 'a')
-        // decriptNoPadding(cipher, new Buffer(fixture.password), fixture.results.ciphers[cipher], 'b')
+        // decriptNoPadding(cipher, Buffer.from(fixture.password), buf.toString('hex'), 'a')
+        // decriptNoPadding(cipher, Buffer.from(fixture.password), fixture.results.ciphers[cipher], 'b')
         t.equals(buf.toString('utf8'), fixture.text)
       })
-      suite.write(new Buffer(fixture.results.ciphers[cipher], 'hex'))
+      suite.write(Buffer.from(fixture.results.ciphers[cipher], 'hex'))
       suite.end()
     })
 
     test('fixture ' + i + ' ' + cipher + '-decrypt-legacy', function (t) {
       t.plan(4)
-      var suite = crypto.createDecipher(cipher, new Buffer(fixture.password))
-      var buf = new Buffer('')
-      var suite2 = _crypto.createDecipher(cipher, new Buffer(fixture.password))
-      var buf2 = new Buffer('')
-      var inbuf = new Buffer(fixture.results.ciphers[cipher], 'hex')
+      var suite = crypto.createDecipher(cipher, Buffer.from(fixture.password))
+      var buf = Buffer.alloc(0)
+      var suite2 = _crypto.createDecipher(cipher, Buffer.from(fixture.password))
+      var buf2 = Buffer.alloc(0)
+      var inbuf = Buffer.from(fixture.results.ciphers[cipher], 'hex')
       var mid = ~~(inbuf.length / 2)
       buf = Buffer.concat([buf, suite.update(inbuf.slice(0, mid))])
       buf2 = Buffer.concat([buf2, suite2.update(inbuf.slice(0, mid))])
@@ -105,10 +106,10 @@ fixtures.forEach(function (fixture, i) {
     test('fixture ' + i + ' ' + cipher + '-iv', function (t) {
       t.plan(isGCM(cipher) ? 4 : 2)
 
-      var suite = crypto.createCipheriv(cipher, ebtk(fixture.password, false, modes[cipher].key).key, isGCM(cipher) ? (new Buffer(fixture.iv, 'hex').slice(0, 12)) : (new Buffer(fixture.iv, 'hex')))
-      var suite2 = _crypto.createCipheriv(cipher, ebtk(fixture.password, false, modes[cipher].key).key, isGCM(cipher) ? (new Buffer(fixture.iv, 'hex').slice(0, 12)) : (new Buffer(fixture.iv, 'hex')))
-      var buf = new Buffer('')
-      var buf2 = new Buffer('')
+      var suite = crypto.createCipheriv(cipher, ebtk(fixture.password, false, modes[cipher].key).key, isGCM(cipher) ? (Buffer.from(fixture.iv, 'hex').slice(0, 12)) : (Buffer.from(fixture.iv, 'hex')))
+      var suite2 = _crypto.createCipheriv(cipher, ebtk(fixture.password, false, modes[cipher].key).key, isGCM(cipher) ? (Buffer.from(fixture.iv, 'hex').slice(0, 12)) : (Buffer.from(fixture.iv, 'hex')))
+      var buf = Buffer.alloc(0)
+      var buf2 = Buffer.alloc(0)
 
       suite.on('data', function (d) {
         buf = Buffer.concat([buf, d])
@@ -136,28 +137,28 @@ fixtures.forEach(function (fixture, i) {
       })
 
       if (isGCM(cipher)) {
-        suite.setAAD(new Buffer(fixture.aad, 'hex'))
-        suite2.setAAD(new Buffer(fixture.aad, 'hex'))
+        suite.setAAD(Buffer.from(fixture.aad, 'hex'))
+        suite2.setAAD(Buffer.from(fixture.aad, 'hex'))
       }
 
-      suite2.write(new Buffer(fixture.text))
+      suite2.write(Buffer.from(fixture.text))
       suite2.end()
-      suite.write(new Buffer(fixture.text))
+      suite.write(Buffer.from(fixture.text))
       suite.end()
     })
 
     test('fixture ' + i + ' ' + cipher + '-legacy-iv', function (t) {
       t.plan(isGCM(cipher) ? 6 : 4)
 
-      var suite = crypto.createCipheriv(cipher, ebtk(fixture.password, false, modes[cipher].key).key, isGCM(cipher) ? (new Buffer(fixture.iv, 'hex').slice(0, 12)) : (new Buffer(fixture.iv, 'hex')))
-      var suite2 = _crypto.createCipheriv(cipher, ebtk(fixture.password, false, modes[cipher].key).key, isGCM(cipher) ? (new Buffer(fixture.iv, 'hex').slice(0, 12)) : (new Buffer(fixture.iv, 'hex')))
-      var buf = new Buffer('')
-      var buf2 = new Buffer('')
-      var inbuf = new Buffer(fixture.text)
+      var suite = crypto.createCipheriv(cipher, ebtk(fixture.password, false, modes[cipher].key).key, isGCM(cipher) ? (Buffer.from(fixture.iv, 'hex').slice(0, 12)) : (Buffer.from(fixture.iv, 'hex')))
+      var suite2 = _crypto.createCipheriv(cipher, ebtk(fixture.password, false, modes[cipher].key).key, isGCM(cipher) ? (Buffer.from(fixture.iv, 'hex').slice(0, 12)) : (Buffer.from(fixture.iv, 'hex')))
+      var buf = Buffer.alloc(0)
+      var buf2 = Buffer.alloc(0)
+      var inbuf = Buffer.from(fixture.text)
       var mid = ~~(inbuf.length / 2)
       if (isGCM(cipher)) {
-        suite.setAAD(new Buffer(fixture.aad, 'hex'))
-        suite2.setAAD(new Buffer(fixture.aad, 'hex'))
+        suite.setAAD(Buffer.from(fixture.aad, 'hex'))
+        suite2.setAAD(Buffer.from(fixture.aad, 'hex'))
       }
 
       buf = Buffer.concat([buf, suite.update(inbuf.slice(0, mid))])
@@ -179,10 +180,10 @@ fixtures.forEach(function (fixture, i) {
     test('fixture ' + i + ' ' + cipher + '-iv-decrypt', function (t) {
       t.plan(2)
 
-      var suite = crypto.createDecipheriv(cipher, ebtk(fixture.password, false, modes[cipher].key).key, isGCM(cipher) ? (new Buffer(fixture.iv, 'hex').slice(0, 12)) : (new Buffer(fixture.iv, 'hex')))
-      var buf = new Buffer('')
-      var suite2 = _crypto.createDecipheriv(cipher, ebtk(fixture.password, false, modes[cipher].key).key, isGCM(cipher) ? (new Buffer(fixture.iv, 'hex').slice(0, 12)) : (new Buffer(fixture.iv, 'hex')))
-      var buf2 = new Buffer('')
+      var suite = crypto.createDecipheriv(cipher, ebtk(fixture.password, false, modes[cipher].key).key, isGCM(cipher) ? (Buffer.from(fixture.iv, 'hex').slice(0, 12)) : (Buffer.from(fixture.iv, 'hex')))
+      var buf = Buffer.alloc(0)
+      var suite2 = _crypto.createDecipheriv(cipher, ebtk(fixture.password, false, modes[cipher].key).key, isGCM(cipher) ? (Buffer.from(fixture.iv, 'hex').slice(0, 12)) : (Buffer.from(fixture.iv, 'hex')))
+      var buf2 = Buffer.alloc(0)
 
       suite.on('data', function (d) {
         buf = Buffer.concat([buf, d])
@@ -206,30 +207,30 @@ fixtures.forEach(function (fixture, i) {
       })
 
       if (isGCM(cipher)) {
-        suite.setAuthTag(new Buffer(fixture.authtag[cipher], 'hex'))
-        suite2.setAuthTag(new Buffer(fixture.authtag[cipher], 'hex'))
-        suite.setAAD(new Buffer(fixture.aad, 'hex'))
-        suite2.setAAD(new Buffer(fixture.aad, 'hex'))
+        suite.setAuthTag(Buffer.from(fixture.authtag[cipher], 'hex'))
+        suite2.setAuthTag(Buffer.from(fixture.authtag[cipher], 'hex'))
+        suite.setAAD(Buffer.from(fixture.aad, 'hex'))
+        suite2.setAAD(Buffer.from(fixture.aad, 'hex'))
       }
 
-      suite2.write(new Buffer(fixture.results.cipherivs[cipher], 'hex'))
-      suite.write(new Buffer(fixture.results.cipherivs[cipher], 'hex'))
+      suite2.write(Buffer.from(fixture.results.cipherivs[cipher], 'hex'))
+      suite.write(Buffer.from(fixture.results.cipherivs[cipher], 'hex'))
       suite2.end()
       suite.end()
     })
     test('fixture ' + i + ' ' + cipher + '-decrypt-legacy', function (t) {
       t.plan(4)
-      var suite = crypto.createDecipheriv(cipher, ebtk(fixture.password, false, modes[cipher].key).key, isGCM(cipher) ? (new Buffer(fixture.iv, 'hex').slice(0, 12)) : (new Buffer(fixture.iv, 'hex')))
-      var buf = new Buffer('')
-      var suite2 = _crypto.createDecipheriv(cipher, ebtk(fixture.password, false, modes[cipher].key).key, isGCM(cipher) ? (new Buffer(fixture.iv, 'hex').slice(0, 12)) : (new Buffer(fixture.iv, 'hex')))
-      var buf2 = new Buffer('')
-      var inbuf = new Buffer(fixture.results.cipherivs[cipher], 'hex')
+      var suite = crypto.createDecipheriv(cipher, ebtk(fixture.password, false, modes[cipher].key).key, isGCM(cipher) ? (Buffer.from(fixture.iv, 'hex').slice(0, 12)) : (Buffer.from(fixture.iv, 'hex')))
+      var buf = Buffer.alloc(0)
+      var suite2 = _crypto.createDecipheriv(cipher, ebtk(fixture.password, false, modes[cipher].key).key, isGCM(cipher) ? (Buffer.from(fixture.iv, 'hex').slice(0, 12)) : (Buffer.from(fixture.iv, 'hex')))
+      var buf2 = Buffer.alloc(0)
+      var inbuf = Buffer.from(fixture.results.cipherivs[cipher], 'hex')
       var mid = ~~(inbuf.length / 2)
       if (isGCM(cipher)) {
-        suite.setAAD(new Buffer(fixture.aad, 'hex'))
-        suite2.setAAD(new Buffer(fixture.aad, 'hex'))
-        suite.setAuthTag(new Buffer(fixture.authtag[cipher], 'hex'))
-        suite2.setAuthTag(new Buffer(fixture.authtag[cipher], 'hex'))
+        suite.setAAD(Buffer.from(fixture.aad, 'hex'))
+        suite2.setAAD(Buffer.from(fixture.aad, 'hex'))
+        suite.setAuthTag(Buffer.from(fixture.authtag[cipher], 'hex'))
+        suite2.setAuthTag(Buffer.from(fixture.authtag[cipher], 'hex'))
       }
       buf = Buffer.concat([buf, suite.update(inbuf.slice(0, mid))])
       buf2 = Buffer.concat([buf2, suite2.update(inbuf.slice(0, mid))])
@@ -308,8 +309,8 @@ if (!isNode10()) {
 
         (function () {
           var encrypt = crypto.createCipheriv(test.algo,
-            new Buffer(test.key, 'hex'), new Buffer(test.iv, 'hex'))
-          if (test.aad) encrypt.setAAD(new Buffer(test.aad, 'hex'))
+            Buffer.from(test.key, 'hex'), Buffer.from(test.iv, 'hex'))
+          if (test.aad) encrypt.setAAD(Buffer.from(test.aad, 'hex'))
 
           var hex = encrypt.update(test.plain, 'ascii', 'hex')
           hex += encrypt.final('hex')
@@ -324,9 +325,9 @@ if (!isNode10()) {
 
         ;(function () {
           var decrypt = crypto.createDecipheriv(test.algo,
-            new Buffer(test.key, 'hex'), new Buffer(test.iv, 'hex'))
-          decrypt.setAuthTag(new Buffer(test.tag, 'hex'))
-          if (test.aad) decrypt.setAAD(new Buffer(test.aad, 'hex'))
+            Buffer.from(test.key, 'hex'), Buffer.from(test.iv, 'hex'))
+          decrypt.setAuthTag(Buffer.from(test.tag, 'hex'))
+          if (test.aad) decrypt.setAAD(Buffer.from(test.aad, 'hex'))
           var msg = decrypt.update(test.ct, 'hex', 'ascii')
           if (!test.tampered) {
             msg += decrypt.final('ascii')
@@ -340,7 +341,7 @@ if (!isNode10()) {
         ;(function () {
           if (!test.password) return
           var encrypt = crypto.createCipher(test.algo, test.password)
-          if (test.aad) encrypt.setAAD(new Buffer(test.aad, 'hex'))
+          if (test.aad) encrypt.setAAD(Buffer.from(test.aad, 'hex'))
           var hex = encrypt.update(test.plain, 'ascii', 'hex')
           hex += encrypt.final('hex')
           var authTag = encrypt.getAuthTag()
@@ -354,8 +355,8 @@ if (!isNode10()) {
         ;(function () {
           if (!test.password) return
           var decrypt = crypto.createDecipher(test.algo, test.password)
-          decrypt.setAuthTag(new Buffer(test.tag, 'hex'))
-          if (test.aad) decrypt.setAAD(new Buffer(test.aad, 'hex'))
+          decrypt.setAuthTag(Buffer.from(test.tag, 'hex'))
+          if (test.aad) decrypt.setAAD(Buffer.from(test.aad, 'hex'))
           var msg = decrypt.update(test.ct, 'hex', 'ascii')
           if (!test.tampered) {
             msg += decrypt.final('ascii')
@@ -382,14 +383,14 @@ if (!isNode10()) {
           encrypt.final()
           t.throws(function () { encrypt.getAuthTag() })
           t.throws(function () {
-            encrypt.setAAD(new Buffer('123', 'ascii'))
+            encrypt.setAAD(Buffer.from('123', 'ascii'))
           })
         })()
 
         ;(function () {
           // trying to get tag before inputting all data:
           var encrypt = crypto.createCipheriv(test.algo,
-            new Buffer(test.key, 'hex'), new Buffer(test.iv, 'hex'))
+            Buffer.from(test.key, 'hex'), Buffer.from(test.iv, 'hex'))
           encrypt.update('blah', 'ascii')
           t.throws(function () { encrypt.getAuthTag() }, / state/)
         })()
@@ -397,16 +398,16 @@ if (!isNode10()) {
         ;(function () {
           // trying to set tag on encryption object:
           var encrypt = crypto.createCipheriv(test.algo,
-            new Buffer(test.key, 'hex'), new Buffer(test.iv, 'hex'))
+            Buffer.from(test.key, 'hex'), Buffer.from(test.iv, 'hex'))
           t.throws(function () {
-            encrypt.setAuthTag(new Buffer(test.tag, 'hex'))
+            encrypt.setAuthTag(Buffer.from(test.tag, 'hex'))
           }, / state/)
         })()
 
         ;(function () {
           // trying to read tag from decryption object:
           var decrypt = crypto.createDecipheriv(test.algo,
-            new Buffer(test.key, 'hex'), new Buffer(test.iv, 'hex'))
+            Buffer.from(test.key, 'hex'), Buffer.from(test.iv, 'hex'))
           t.throws(function () { decrypt.getAuthTag() }, / state/)
         })()
         t.end()
@@ -422,13 +423,12 @@ if (!isNode10()) {
 function corectPaddingWords (padding, result) {
   test('correct padding ' + padding.toString('hex'), function (t) {
     t.plan(1)
-    var block1 = new Buffer(16)
-    block1.fill(4)
+    var block1 = Buffer.alloc(16, 4)
     result = block1.toString('hex') + result.toString('hex')
-    var cipher = _crypto.createCipher('aes128', new Buffer('password'))
+    var cipher = _crypto.createCipher('aes128', Buffer.from('password'))
     cipher.setAutoPadding(false)
-    var decipher = crypto.createDecipher('aes128', new Buffer('password'))
-    var out = new Buffer('')
+    var decipher = crypto.createDecipher('aes128', Buffer.from('password'))
+    var out = Buffer.alloc(0)
     out = Buffer.concat([out, cipher.update(block1)])
     out = Buffer.concat([out, cipher.update(padding)])
     var deciphered = decipher.update(out)
@@ -437,26 +437,23 @@ function corectPaddingWords (padding, result) {
   })
 }
 
-var sixteens = new Buffer(16)
-sixteens.fill(16)
-corectPaddingWords(sixteens, new Buffer(''))
-var fifteens = new Buffer(16)
-fifteens.fill(15)
+var sixteens = Buffer.alloc(16, 16)
+corectPaddingWords(sixteens, Buffer.alloc(0))
+var fifteens = Buffer.alloc(16, 15)
 fifteens[0] = 5
-corectPaddingWords(fifteens, new Buffer([5]))
+corectPaddingWords(fifteens, Buffer.from([5]))
 var one = _crypto.randomBytes(16)
 one[15] = 1
 corectPaddingWords(one, one.slice(0, -1))
 function incorectPaddingthrows (padding) {
   test('incorrect padding ' + padding.toString('hex'), function (t) {
     t.plan(2)
-    var block1 = new Buffer(16)
-    block1.fill(4)
-    var cipher = crypto.createCipher('aes128', new Buffer('password'))
+    var block1 = Buffer.alloc(16, 4)
+    var cipher = crypto.createCipher('aes128', Buffer.from('password'))
     cipher.setAutoPadding(false)
-    var decipher = crypto.createDecipher('aes128', new Buffer('password'))
-    var decipher2 = _crypto.createDecipher('aes128', new Buffer('password'))
-    var out = new Buffer('')
+    var decipher = crypto.createDecipher('aes128', Buffer.from('password'))
+    var decipher2 = _crypto.createDecipher('aes128', Buffer.from('password'))
+    var out = Buffer.alloc(0)
     out = Buffer.concat([out, cipher.update(block1)])
     out = Buffer.concat([out, cipher.update(padding)])
     decipher.update(out)
@@ -473,12 +470,11 @@ function incorectPaddingthrows (padding) {
 function incorectPaddingDoesNotThrow (padding) {
   test('stream incorrect padding ' + padding.toString('hex'), function (t) {
     t.plan(2)
-    var block1 = new Buffer(16)
-    block1.fill(4)
-    var cipher = crypto.createCipher('aes128', new Buffer('password'))
+    var block1 = Buffer.alloc(16, 4)
+    var cipher = crypto.createCipher('aes128', Buffer.from('password'))
     cipher.setAutoPadding(false)
-    var decipher = crypto.createDecipher('aes128', new Buffer('password'))
-    var decipher2 = _crypto.createDecipher('aes128', new Buffer('password'))
+    var decipher = crypto.createDecipher('aes128', Buffer.from('password'))
+    var decipher2 = _crypto.createDecipher('aes128', Buffer.from('password'))
     cipher.pipe(decipher)
     cipher.pipe(decipher2)
     cipher.write(block1)
@@ -493,13 +489,11 @@ function incorectPaddingDoesNotThrow (padding) {
   })
 }
 
-var sixteens2 = new Buffer(16)
-sixteens2.fill(16)
+var sixteens2 = Buffer.alloc(16, 16)
 sixteens2[3] = 5
 incorectPaddingthrows(sixteens2)
 incorectPaddingDoesNotThrow(sixteens2)
-var fifteens2 = new Buffer(16)
-fifteens2.fill(15)
+var fifteens2 = Buffer.alloc(16, 15)
 fifteens2[0] = 5
 fifteens2[1] = 6
 incorectPaddingthrows(fifteens2)
@@ -512,14 +506,14 @@ incorectPaddingDoesNotThrow(two)
 
 test('autopadding false decipher', function (t) {
   t.plan(2)
-  var mycipher = crypto.createCipher('AES-128-ECB', new Buffer('password'))
-  var nodecipher = _crypto.createCipher('AES-128-ECB', new Buffer('password'))
+  var mycipher = crypto.createCipher('AES-128-ECB', Buffer.from('password'))
+  var nodecipher = _crypto.createCipher('AES-128-ECB', Buffer.from('password'))
   var myEnc = mycipher.final()
   var nodeEnc = nodecipher.final()
   t.equals(myEnc.toString('hex'), nodeEnc.toString('hex'), 'same encryption')
-  var decipher = crypto.createDecipher('aes-128-ecb', new Buffer('password'))
+  var decipher = crypto.createDecipher('aes-128-ecb', Buffer.from('password'))
   decipher.setAutoPadding(false)
-  var decipher2 = _crypto.createDecipher('aes-128-ecb', new Buffer('password'))
+  var decipher2 = _crypto.createDecipher('aes-128-ecb', Buffer.from('password'))
   decipher2.setAutoPadding(false)
   t.equals(decipher.update(myEnc).toString('hex'), decipher2.update(nodeEnc).toString('hex'), 'same decryption')
 })
@@ -527,9 +521,9 @@ test('autopadding false decipher', function (t) {
 test('autopadding false cipher throws', function (t) {
   t.plan(2)
 
-  var mycipher = crypto.createCipher('aes-128-ecb', new Buffer('password'))
+  var mycipher = crypto.createCipher('aes-128-ecb', Buffer.from('password'))
   mycipher.setAutoPadding(false)
-  var nodecipher = _crypto.createCipher('aes-128-ecb', new Buffer('password'))
+  var nodecipher = _crypto.createCipher('aes-128-ecb', Buffer.from('password'))
   nodecipher.setAutoPadding(false)
   mycipher.update('foo')
   nodecipher.update('foo')
@@ -584,8 +578,7 @@ test('correctly handle incremental base64 output', function (t) {
 
 test('handle long uft8 plaintexts', function (t) {
   t.plan(1)
-  var salt = new Buffer(32)
-  salt.fill(0)
+  var salt = Buffer.alloc(32, 0)
 
   function encrypt (txt) {
     var cipher = crypto.createCipher('aes-256-cbc', salt)
