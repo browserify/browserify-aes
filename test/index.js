@@ -418,90 +418,6 @@ test('node tests', function (t) {
   }
 })
 
-function corectPaddingWords (padding, result) {
-  test('correct padding ' + padding.toString('hex'), function (t) {
-    t.plan(1)
-    var block1 = Buffer.alloc(16, 4)
-    result = block1.toString('hex') + result.toString('hex')
-    var cipher = _crypto.createCipher('aes128', Buffer.from('password'))
-    cipher.setAutoPadding(false)
-    var decipher = crypto.createDecipher('aes128', Buffer.from('password'))
-    var out = Buffer.alloc(0)
-    out = Buffer.concat([out, cipher.update(block1)])
-    out = Buffer.concat([out, cipher.update(padding)])
-    var deciphered = decipher.update(out)
-    deciphered = Buffer.concat([deciphered, decipher.final()])
-    t.equals(deciphered.toString('hex'), result)
-  })
-}
-
-var sixteens = Buffer.alloc(16, 16)
-corectPaddingWords(sixteens, Buffer.alloc(0))
-var fifteens = Buffer.alloc(16, 15)
-fifteens[0] = 5
-corectPaddingWords(fifteens, Buffer.from([5]))
-var one = _crypto.randomBytes(16)
-one[15] = 1
-corectPaddingWords(one, one.slice(0, -1))
-function incorectPaddingthrows (padding) {
-  test('incorrect padding ' + padding.toString('hex'), function (t) {
-    t.plan(2)
-    var block1 = Buffer.alloc(16, 4)
-    var cipher = crypto.createCipher('aes128', Buffer.from('password'))
-    cipher.setAutoPadding(false)
-    var decipher = crypto.createDecipher('aes128', Buffer.from('password'))
-    var decipher2 = _crypto.createDecipher('aes128', Buffer.from('password'))
-    var out = Buffer.alloc(0)
-    out = Buffer.concat([out, cipher.update(block1)])
-    out = Buffer.concat([out, cipher.update(padding)])
-    decipher.update(out)
-    decipher2.update(out)
-    t.throws(function () {
-      decipher.final()
-    }, 'mine')
-    t.throws(function () {
-      decipher2.final()
-    }, 'node')
-  })
-}
-
-function incorectPaddingDoesNotThrow (padding) {
-  test('stream incorrect padding ' + padding.toString('hex'), function (t) {
-    t.plan(2)
-    var block1 = Buffer.alloc(16, 4)
-    var cipher = crypto.createCipher('aes128', Buffer.from('password'))
-    cipher.setAutoPadding(false)
-    var decipher = crypto.createDecipher('aes128', Buffer.from('password'))
-    var decipher2 = _crypto.createDecipher('aes128', Buffer.from('password'))
-    cipher.pipe(decipher)
-    cipher.pipe(decipher2)
-    cipher.write(block1)
-    cipher.write(padding)
-    decipher.on('error', function (e) {
-      t.ok(e, 'mine')
-    })
-    decipher2.on('error', function (e) {
-      t.ok(e, 'node')
-    })
-    cipher.end()
-  })
-}
-
-var sixteens2 = Buffer.alloc(16, 16)
-sixteens2[3] = 5
-incorectPaddingthrows(sixteens2)
-incorectPaddingDoesNotThrow(sixteens2)
-var fifteens2 = Buffer.alloc(16, 15)
-fifteens2[0] = 5
-fifteens2[1] = 6
-incorectPaddingthrows(fifteens2)
-incorectPaddingDoesNotThrow(fifteens2)
-var two = _crypto.randomBytes(16)
-two[15] = 2
-two[14] = 1
-incorectPaddingthrows(two)
-incorectPaddingDoesNotThrow(two)
-
 test('autopadding false decipher', function (t) {
   t.plan(2)
   var mycipher = crypto.createCipher('AES-128-ECB', Buffer.from('password'))
@@ -525,11 +441,9 @@ test('autopadding false cipher throws', function (t) {
   nodecipher.setAutoPadding(false)
   mycipher.update('foo')
   nodecipher.update('foo')
-
   t.throws(function () {
     mycipher.final()
   }, /data not multiple of block length/)
-
   t.throws(function () {
     nodecipher.final()
   }, /./)
@@ -608,4 +522,87 @@ test('mix and match encoding', function (t) {
     cipher.update('foo', 'utf8')
     cipher.final('base64')
   })
+})
+
+function corectPaddingWords (padding, result) {
+  test('correct padding ' + padding.toString('hex'), function (t) {
+    t.plan(1)
+    var block1 = Buffer.alloc(16, 4)
+    result = block1.toString('hex') + result.toString('hex')
+    var cipher = _crypto.createCipher('aes128', Buffer.from('password'))
+    cipher.setAutoPadding(false)
+    var decipher = crypto.createDecipher('aes128', Buffer.from('password'))
+    var out = Buffer.alloc(0)
+    out = Buffer.concat([out, cipher.update(block1)])
+    out = Buffer.concat([out, cipher.update(padding)])
+    var deciphered = decipher.update(out)
+    deciphered = Buffer.concat([deciphered, decipher.final()])
+    t.equals(deciphered.toString('hex'), result)
+  })
+}
+
+function incorectPaddingthrows (padding) {
+  test('incorrect padding ' + padding.toString('hex'), function (t) {
+    t.plan(2)
+    var block1 = Buffer.alloc(16, 4)
+    var cipher = crypto.createCipher('aes128', Buffer.from('password'))
+    cipher.setAutoPadding(false)
+    var decipher = crypto.createDecipher('aes128', Buffer.from('password'))
+    var decipher2 = _crypto.createDecipher('aes128', Buffer.from('password'))
+    var out = Buffer.alloc(0)
+    out = Buffer.concat([out, cipher.update(block1)])
+    out = Buffer.concat([out, cipher.update(padding)])
+    decipher.update(out)
+    decipher2.update(out)
+    t.throws(function () {
+      decipher.final()
+    }, 'mine')
+    t.throws(function () {
+      decipher2.final()
+    }, 'node')
+  })
+}
+
+function incorectPaddingDoesNotThrow (padding) {
+  test('stream incorrect padding ' + padding.toString('hex'), function (t) {
+    t.plan(2)
+    var block1 = Buffer.alloc(16, 4)
+    var cipher = crypto.createCipher('aes128', Buffer.from('password'))
+    cipher.setAutoPadding(false)
+    var decipher = crypto.createDecipher('aes128', Buffer.from('password'))
+    var decipher2 = _crypto.createDecipher('aes128', Buffer.from('password'))
+    cipher.pipe(decipher)
+    cipher.pipe(decipher2)
+    cipher.write(block1)
+    cipher.write(padding)
+    decipher.on('error', function (e) {
+      t.ok(e, 'mine')
+    })
+    decipher2.on('error', function (e) {
+      t.ok(e, 'node')
+    })
+    cipher.end()
+  })
+}
+
+var sixteens = Buffer.alloc(16, 16)
+var fifteens = Buffer.alloc(16, 15)
+fifteens[0] = 5
+var one = _crypto.randomBytes(16)
+one[15] = 1
+var sixteens2 = Buffer.alloc(16, 16)
+sixteens2[3] = 5
+var fifteens2 = Buffer.alloc(16, 15)
+fifteens2[0] = 5
+fifteens2[1] = 6
+var two = _crypto.randomBytes(16)
+two[15] = 2
+two[14] = 1
+
+corectPaddingWords(sixteens, Buffer.alloc(0))
+corectPaddingWords(fifteens, Buffer.from([5]))
+corectPaddingWords(one, one.slice(0, -1))
+;[sixteens2, fifteens2, two].forEach((x) => {
+  incorectPaddingthrows(x)
+  incorectPaddingDoesNotThrow(x)
 })
