@@ -187,9 +187,13 @@ AES.prototype._reset = function () {
   this._invKeySchedule = invKeySchedule
 }
 
-AES.prototype.encryptBlock = function (M) {
+AES.prototype.encryptBlockRaw = function (M) {
   M = asUInt32Array(M)
-  var out = cryptBlock(M, this._keySchedule, G.SUB_MIX, G.SBOX, this._nRounds)
+  return cryptBlock(M, this._keySchedule, G.SUB_MIX, G.SBOX, this._nRounds)
+}
+
+AES.prototype.encryptBlock = function (M) {
+  var out = this.encryptBlockRaw(M)
   var buf = Buffer.allocUnsafe(16)
   buf.writeUInt32BE(out[0], 0)
   buf.writeUInt32BE(out[1], 4)

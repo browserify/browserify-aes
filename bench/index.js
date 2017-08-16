@@ -5,7 +5,7 @@ let key = Buffer.alloc(16, 0xff)
 let iv = Buffer.alloc(16, 0x01)
 
 function test (mod, message) {
-  let cipher = mod.createCipheriv('aes-128-cbc', key, iv)
+  let cipher = mod.createCipheriv('aes-128-ctr', key, iv)
   let b = cipher.update(message)
   return Buffer.concat([b, cipher.final()])
 }
