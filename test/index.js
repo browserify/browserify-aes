@@ -431,6 +431,49 @@ test('correctly handle incremental base64 output', function (t) {
   t.equals(data, decrypted, 'round trips')
 })
 
+var gcmTest = [
+  {
+    length: 8,
+    answer: 'f0714f44',
+    tag: 'a5814f7c3d8e7eee899d260fb91784bf'
+  },
+  {
+    length: 16,
+    answer: 'b93caf62',
+    tag: '58fd9623495ac556f0d26cbc9fa4384c'
+  },
+  {
+    length: 21,
+    answer: '4534b74d',
+    tag: '5299c9c1011f32b17db796745239298a'
+  },
+  {
+    length: 43,
+    answer: 'b16a634b',
+    tag: 'd9274cb14b01e8e6a8fe3866b0e17f65'
+  }
+]
+function testIV (t, length, answer, tag) {
+  t.test('key length ' + length, function (t) {
+    t.plan(3)
+    var key = Buffer.alloc(32, 0)
+    var iv = Buffer.alloc(length, 0)
+    var cipher = crypto.createCipheriv('aes-256-gcm', key, iv)
+    var out = cipher.update('fooo').toString('hex')
+    t.equals(out, answer)
+    cipher.final()
+    t.equals(tag, cipher.getAuthTag().toString('hex'))
+    var decipher = crypto.createDecipheriv('aes-256-gcm', key, iv)
+    decipher.setAuthTag(Buffer.from(tag, 'hex'))
+    var decrypted = decipher.update(Buffer.from(answer, 'hex'))
+    t.equals(decrypted.toString(), 'fooo')
+  })
+}
+test('different IV lengths work for GCM', function (t) {
+  gcmTest.forEach(function (item) {
+    testIV(t, item.length, item.answer, item.tag)
+  })
+})
 test('handle long uft8 plaintexts', function (t) {
   t.plan(1)
   var salt = Buffer.alloc(32, 0)
