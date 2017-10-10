@@ -433,31 +433,38 @@ test('correctly handle incremental base64 output', function (t) {
 
 var gcmTest = [
   {
+    key: '68d010dad5295e1f4f485f35cff46c35d423797bf4cd536d4943d787e00f6f07',
     length: 8,
-    answer: 'f0714f44',
-    tag: 'a5814f7c3d8e7eee899d260fb91784bf'
+    answer: '44d0f292',
+    tag: '1f21c63664fc5262827b9624dee894bd',
+    ivFill: 9
   },
   {
+    key: '9ba693ec61afc9b7950f9177780b3533126af40a7596c662e26e6d6bbf536030',
     length: 16,
-    answer: 'b93caf62',
-    tag: '58fd9623495ac556f0d26cbc9fa4384c'
+    answer: '1c8f8783',
+    tag: '2d2b33f509153a8afc973cf9fc983800',
+    ivFill: 1
   },
   {
+    key: 'dad2a11c52614e4402f0f126028d5e55b50b3a9d6d006cfbee79b77e4a4ee7b9',
     length: 21,
-    answer: '4534b74d',
-    tag: '5299c9c1011f32b17db796745239298a'
+    ivFill: 2,
+    answer: '1a8dd3ed',
+    tag: '68ce0e40ee335388c0468813b8e5eb4b'
   },
   {
+    key: '4c062c7bd7566bec4c509e3bf0c9cc2acb75a863403b04fdce025ba26b6a6ca2',
     length: 43,
-    answer: 'b16a634b',
-    tag: 'd9274cb14b01e8e6a8fe3866b0e17f65'
+    ivFill: 5,
+    answer: '5f6ccc8c',
+    tag: '9a0d845168a1491e17217a20a75defb0'
   }
 ]
-function testIV (t, length, answer, tag) {
+function testIV (t, length, answer, tag, key, ivFill) {
   t.test('key length ' + length, function (t) {
     t.plan(3)
-    var key = Buffer.alloc(32, 0)
-    var iv = Buffer.alloc(length, 0)
+    var iv = Buffer.alloc(length, ivFill)
     var cipher = crypto.createCipheriv('aes-256-gcm', key, iv)
     var out = cipher.update('fooo').toString('hex')
     t.equals(out, answer)
@@ -471,7 +478,7 @@ function testIV (t, length, answer, tag) {
 }
 test('different IV lengths work for GCM', function (t) {
   gcmTest.forEach(function (item) {
-    testIV(t, item.length, item.answer, item.tag)
+    testIV(t, item.length, item.answer, item.tag, Buffer.from(item.key, 'hex'), item.ivFill)
   })
 })
 test('handle long uft8 plaintexts', function (t) {
