@@ -591,11 +591,14 @@ fifteens2[1] = 6
 var two = _crypto.randomBytes(16)
 two[15] = 2
 two[14] = 1
+var zeroes = Buffer.alloc(16)
+var seventeens = Buffer.alloc(16, 17)
+var ff = Buffer.alloc(16, 0xff)
 
 corectPaddingWords(sixteens, Buffer.alloc(0))
 corectPaddingWords(fifteens, Buffer.from([5]))
 corectPaddingWords(one, one.slice(0, -1))
-;[sixteens2, fifteens2, two].forEach((x) => {
+;[sixteens2, fifteens2, two, zeroes, seventeens, ff].forEach((x) => {
   incorectPaddingthrows(x)
   incorectPaddingDoesNotThrow(x)
 })
