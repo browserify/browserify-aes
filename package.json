@@ -33,7 +33,8 @@
     "create-hash": "^1.1.0",
     "evp_bytestokey": "^1.0.3",
     "inherits": "^2.0.1",
-    "safe-buffer": "^5.0.1"
+    "safe-buffer": "^5.0.1",
+    "timing-safe-equal": "^1.0.0"
   },
   "devDependencies": {
     "standard": "^9.0.0",

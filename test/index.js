@@ -9,13 +9,18 @@ var CIPHERS = Object.keys(modes)
 var ebtk = require('evp_bytestokey')
 
 function isGCM (cipher) {
-  return modes[cipher].mode === 'GCM'
+  return modes[cipher].type === 'auth'
 }
 
 function isNode10 () {
+  if (process.version.slice(0, 3) !== 'v0.') {
+    return false
+  }
   return process.version && process.version.split('.').length === 3 && parseInt(process.version.split('.')[1], 10) <= 10
 }
-
+function isNodev10 () {
+  return process.version && process.version.split('.').length === 3 && parseInt(process.version.split('.')[0].slice(1), 10) >= 10
+}
 fixtures.forEach(function (f, i) {
   CIPHERS.forEach(function (cipher) {
     if (isGCM(cipher)) return
@@ -103,15 +108,32 @@ fixtures.forEach(function (f, i) {
   CIPHERS.forEach(function (cipher) {
     if (modes[cipher].mode === 'ECB') return
     if (isGCM(cipher) && isNode10()) return
-
+    if (modes[cipher].mode === 'CCM' && !isNodev10()) return
     test('fixture ' + i + ' ' + cipher + '-iv', function (t) {
       t.plan(isGCM(cipher) ? 4 : 2)
 
-      var suite = crypto.createCipheriv(cipher, ebtk(f.password, false, modes[cipher].key).key, isGCM(cipher) ? (Buffer.from(f.iv, 'hex').slice(0, 12)) : (Buffer.from(f.iv, 'hex')))
-      var suite2 = _crypto.createCipheriv(cipher, ebtk(f.password, false, modes[cipher].key).key, isGCM(cipher) ? (Buffer.from(f.iv, 'hex').slice(0, 12)) : (Buffer.from(f.iv, 'hex')))
+      var suite = crypto.createCipheriv(cipher, ebtk(f.password, false, modes[cipher].key).key, isGCM(cipher) ? (Buffer.from(f.iv, 'hex').slice(0, 12)) : (Buffer.from(f.iv, 'hex')), {
+        authTagLength: 16
+      })
+      var suite2 = _crypto.createCipheriv(cipher, ebtk(f.password, false, modes[cipher].key).key, isGCM(cipher) ? (Buffer.from(f.iv, 'hex').slice(0, 12)) : (Buffer.from(f.iv, 'hex')), {
+        authTagLength: 16
+      })
       var buf = Buffer.alloc(0)
       var buf2 = Buffer.alloc(0)
-
+      if (isGCM(cipher)) {
+        if (modes[cipher].mode === 'CCM') {
+          var plainLen = Buffer.from(f.text).length
+          suite.setAAD(Buffer.from(f.aad, 'hex'), {
+            plaintextLength: plainLen
+          })
+          suite2.setAAD(Buffer.from(f.aad, 'hex'), {
+            plaintextLength: plainLen
+          })
+        } else {
+          suite.setAAD(Buffer.from(f.aad, 'hex'))
+          suite2.setAAD(Buffer.from(f.aad, 'hex'))
+        }
+      }
       suite.on('data', function (d) {
         buf = Buffer.concat([buf, d])
       })
@@ -137,11 +159,6 @@ fixtures.forEach(function (f, i) {
         }
       })
 
-      if (isGCM(cipher)) {
-        suite.setAAD(Buffer.from(f.aad, 'hex'))
-        suite2.setAAD(Buffer.from(f.aad, 'hex'))
-      }
-
       suite2.write(Buffer.from(f.text))
       suite2.end()
       suite.write(Buffer.from(f.text))
@@ -149,17 +166,35 @@ fixtures.forEach(function (f, i) {
     })
 
     test('fixture ' + i + ' ' + cipher + '-legacy-iv', function (t) {
+      if (modes[cipher].mode === 'CCM') {
+        t.end()
+        return
+      }
       t.plan(isGCM(cipher) ? 6 : 4)
 
-      var suite = crypto.createCipheriv(cipher, ebtk(f.password, false, modes[cipher].key).key, isGCM(cipher) ? (Buffer.from(f.iv, 'hex').slice(0, 12)) : (Buffer.from(f.iv, 'hex')))
-      var suite2 = _crypto.createCipheriv(cipher, ebtk(f.password, false, modes[cipher].key).key, isGCM(cipher) ? (Buffer.from(f.iv, 'hex').slice(0, 12)) : (Buffer.from(f.iv, 'hex')))
+      var suite = crypto.createCipheriv(cipher, ebtk(f.password, false, modes[cipher].key).key, isGCM(cipher) ? (Buffer.from(f.iv, 'hex').slice(0, 12)) : (Buffer.from(f.iv, 'hex')), {
+        authTagLength: 16
+      })
+      var suite2 = _crypto.createCipheriv(cipher, ebtk(f.password, false, modes[cipher].key).key, isGCM(cipher) ? (Buffer.from(f.iv, 'hex').slice(0, 12)) : (Buffer.from(f.iv, 'hex')), {
+        authTagLength: 16
+      })
       var buf = Buffer.alloc(0)
       var buf2 = Buffer.alloc(0)
       var inbuf = Buffer.from(f.text)
       var mid = ~~(inbuf.length / 2)
       if (isGCM(cipher)) {
-        suite.setAAD(Buffer.from(f.aad, 'hex'))
-        suite2.setAAD(Buffer.from(f.aad, 'hex'))
+        if (modes[cipher].mode === 'CCM') {
+          var plainLen = Buffer.from(f.text).length
+          suite.setAAD(Buffer.from(f.aad, 'hex'), {
+            plaintextLength: plainLen
+          })
+          suite2.setAAD(Buffer.from(f.aad, 'hex'), {
+            plaintextLength: plainLen
+          })
+        } else {
+          suite.setAAD(Buffer.from(f.aad, 'hex'))
+          suite2.setAAD(Buffer.from(f.aad, 'hex'))
+        }
       }
 
       buf = Buffer.concat([buf, suite.update(inbuf.slice(0, mid))])
@@ -181,9 +216,13 @@ fixtures.forEach(function (f, i) {
     test('fixture ' + i + ' ' + cipher + '-iv-decrypt', function (t) {
       t.plan(2)
 
-      var suite = crypto.createDecipheriv(cipher, ebtk(f.password, false, modes[cipher].key).key, isGCM(cipher) ? (Buffer.from(f.iv, 'hex').slice(0, 12)) : (Buffer.from(f.iv, 'hex')))
+      var suite = crypto.createDecipheriv(cipher, ebtk(f.password, false, modes[cipher].key).key, isGCM(cipher) ? (Buffer.from(f.iv, 'hex').slice(0, 12)) : (Buffer.from(f.iv, 'hex')), {
+        authTagLength: 16
+      })
       var buf = Buffer.alloc(0)
-      var suite2 = _crypto.createDecipheriv(cipher, ebtk(f.password, false, modes[cipher].key).key, isGCM(cipher) ? (Buffer.from(f.iv, 'hex').slice(0, 12)) : (Buffer.from(f.iv, 'hex')))
+      var suite2 = _crypto.createDecipheriv(cipher, ebtk(f.password, false, modes[cipher].key).key, isGCM(cipher) ? (Buffer.from(f.iv, 'hex').slice(0, 12)) : (Buffer.from(f.iv, 'hex')), {
+        authTagLength: 16
+      })
       var buf2 = Buffer.alloc(0)
 
       suite.on('data', function (d) {
@@ -208,10 +247,26 @@ fixtures.forEach(function (f, i) {
       })
 
       if (isGCM(cipher)) {
-        suite.setAuthTag(Buffer.from(f.authtag[cipher], 'hex'))
-        suite2.setAuthTag(Buffer.from(f.authtag[cipher], 'hex'))
-        suite.setAAD(Buffer.from(f.aad, 'hex'))
-        suite2.setAAD(Buffer.from(f.aad, 'hex'))
+        if (modes[cipher].mode === 'CCM') {
+          var plainLen = Buffer.from(f.text).length
+          suite.setAuthTag(Buffer.from(f.authtag[cipher], 'hex'), {
+            plaintextLength: plainLen
+          })
+          suite2.setAuthTag(Buffer.from(f.authtag[cipher], 'hex'), {
+            plaintextLength: plainLen
+          })
+          suite.setAAD(Buffer.from(f.aad, 'hex'), {
+            plaintextLength: plainLen
+          })
+          suite2.setAAD(Buffer.from(f.aad, 'hex'), {
+            plaintextLength: plainLen
+          })
+        } else {
+          suite.setAuthTag(Buffer.from(f.authtag[cipher], 'hex'))
+          suite2.setAuthTag(Buffer.from(f.authtag[cipher], 'hex'))
+          suite.setAAD(Buffer.from(f.aad, 'hex'))
+          suite2.setAAD(Buffer.from(f.aad, 'hex'))
+        }
       }
 
       suite2.write(Buffer.from(f.results.cipherivs[cipher], 'hex'))
@@ -220,6 +275,10 @@ fixtures.forEach(function (f, i) {
       suite.end()
     })
     test('fixture ' + i + ' ' + cipher + '-decrypt-legacy', function (t) {
+      if (modes[cipher].mode === 'CCM') {
+        t.end()
+        return
+      }
       t.plan(4)
       var suite = crypto.createDecipheriv(cipher, ebtk(f.password, false, modes[cipher].key).key, isGCM(cipher) ? (Buffer.from(f.iv, 'hex').slice(0, 12)) : (Buffer.from(f.iv, 'hex')))
       var buf = Buffer.alloc(0)

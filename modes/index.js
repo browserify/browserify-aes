@@ -6,7 +6,8 @@ var modeModules = {
   CFB1: require('./cfb1'),
   OFB: require('./ofb'),
   CTR: require('./ctr'),
-  GCM: require('./ctr')
+  GCM: require('./ctr'),
+  CCM: require('./ctr')
 }
 
 var modes = require('./list.json')
