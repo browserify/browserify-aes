@@ -28,15 +28,12 @@ function cbc (prev, data, self) {
 function StreamCipher (mode, key, iv, decrypt, options) {
   Transform.call(this)
 
-  if (!options || !options.authTagLength) {
-    throw new Error('options authTagLength is required')
-  }
-  if (options.authTagLength < 4 || options.authTagLength > 16 || options.authTagLength % 2 === 1) {
-    throw new Error('authTagLength must be one of 4, 6, 8, 10, 12, 14 or 16')
-  }
-  if (iv.length < 7 || iv.length > 13) {
-    throw new Error('iv must be between 7 and 13 bytes')
-  }
+  if (!options || !options.authTagLength) throw new Error('options authTagLength is required')
+
+  if (options.authTagLength < 4 || options.authTagLength > 16 || options.authTagLength % 2 === 1) throw new Error('authTagLength must be one of 4, 6, 8, 10, 12, 14 or 16')
+
+  if (iv.length < 7 || iv.length > 13) throw new Error('iv must be between 7 and 13 bytes')
+
   this._n = iv.length
   this._l = 15 - this._n
   this._cipher = new aes.AES(key)
@@ -53,13 +50,21 @@ function StreamCipher (mode, key, iv, decrypt, options) {
   this._failed = false
   this._firstBlock = null
 }
-
+function validSize (ivLen, chunkLen) {
+  if (ivLen === 13 && chunkLen >= 65536) {
+    return false
+  }
+  if (ivLen === 12 && chunkLen >= 16777216) {
+    return false
+  }
+  return true
+}
 inherits(StreamCipher, Transform)
 function createTag (self, data) {
   var firstBlock = self._firstBlock
   if (!firstBlock) {
-    firstBlock = Buffer.allocUnsafe(16)
-    firstBlock[0] = 64 + ((self.authTagLength - 2) / 2) * 8 + self._l - 1
+    firstBlock = Buffer.alloc(16)
+    firstBlock[0] = ((self.authTagLength - 2) / 2) * 8 + self._l - 1
     self._iv.copy(firstBlock, 1)
     writeUIntBE(firstBlock, data.length, self._n + 1, self._l)
     firstBlock = self._cipher.encryptBlock(firstBlock)
@@ -67,9 +72,12 @@ function createTag (self, data) {
   return cbc(firstBlock, data, self)
 }
 StreamCipher.prototype._update = function (chunk) {
-  if (this._called) {
-    throw new Error('figure out what error to call here')
-  }
+  if (this._called) throw new Error('Trying to add data in unsupported state')
+
+  if (!validSize(this._iv.length, chunk.length)) throw new Error('Message exceeds maximum size')
+
+  if (this._plainLength !== null && this._plainLength !== chunk.length) throw new Error('Trying to add data in unsupported state')
+
   this._called = true
   this._prev = Buffer.alloc(16)
   this._prev[0] = this._l - 1
@@ -92,6 +100,7 @@ StreamCipher.prototype._update = function (chunk) {
 
 StreamCipher.prototype._final = function () {
   if (this._decrypt && !this._authTag) throw new Error('Unsupported state or unable to authenticate data')
+
   if (this._failed) throw new Error('Unsupported state or unable to authenticate data')
 }
 
@@ -109,11 +118,16 @@ StreamCipher.prototype.setAuthTag = function setAuthTag (tag) {
 
 StreamCipher.prototype.setAAD = function setAAD (buf, options) {
   if (this._called) throw new Error('Attempting to set AAD in unsupported state')
+
   if (!options || !options.plaintextLength) throw new Error('options plaintextLength is required')
-  if (!buf.length) {
-    return
-  }
-  var firstBlock = Buffer.allocUnsafe(16)
+
+  if (!validSize(this._iv.length, options.plaintextLength)) throw new Error('Message exceeds maximum size')
+
+  this._plainLength = options.plaintextLength
+
+  if (!buf.length) return
+
+  var firstBlock = Buffer.alloc(16)
   firstBlock[0] = 64 + ((this.authTagLength - 2) / 2) * 8 + this._l - 1
   this._iv.copy(firstBlock, 1)
   writeUIntBE(firstBlock, options.plaintextLength, this._n + 1, this._l)

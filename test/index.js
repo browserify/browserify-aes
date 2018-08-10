@@ -493,10 +493,43 @@ test('correctly handle incremental base64 output', function (t) {
 var gcmTest = [
   {
     key: '68d010dad5295e1f4f485f35cff46c35d423797bf4cd536d4943d787e00f6f07',
+    length: 7,
+    answer: '8fc8085a',
+    tag: 'fb920e420324e21a56ad76336efe7c97',
+    ivFill: 7,
+    authTagLength: 4,
+    ccmAnswer: 'f0ed92f3',
+    ccmTag: '83c05cd2'
+  },
+  {
+    key: '68d010dad5295e1f4f485f35cff46c35d423797bf4cd536d4943d787e00f6f07',
     length: 8,
     answer: '44d0f292',
     tag: '1f21c63664fc5262827b9624dee894bd',
-    ivFill: 9
+    ivFill: 9,
+    authTagLength: 6,
+    ccmAnswer: '066550ba',
+    ccmTag: 'd52d16412aa4'
+  },
+  {
+    key: '68d010dad5295e1f4f485f35cff46c35d423797bf4cd536d4943d787e00f6f07',
+    length: 10,
+    answer: 'b3cc0140',
+    tag: '6dd36794682d6039265cdda8a12bb86e',
+    ivFill: 3,
+    authTagLength: 8,
+    ccmAnswer: 'b21934c1',
+    ccmTag: 'd52ab76f95be5caa'
+  },
+  {
+    key: '68d010dad5295e1f4f485f35cff46c35d423797bf4cd536d4943d787e00f6f07',
+    length: 13,
+    answer: '4c7d98be',
+    tag: 'bdfe042f9c039752a9bbd9c864b9c6ec',
+    ivFill: 4,
+    authTagLength: 10,
+    ccmAnswer: '2e85269c',
+    ccmTag: 'b089b345b5f8804b7506'
   },
   {
     key: '9ba693ec61afc9b7950f9177780b3533126af40a7596c662e26e6d6bbf536030',
@@ -520,8 +553,8 @@ var gcmTest = [
     tag: '9a0d845168a1491e17217a20a75defb0'
   }
 ]
-function testIV (t, length, answer, tag, key, ivFill) {
-  t.test('key length ' + length, function (t) {
+function testIV (t, length, answer, tag, key, ivFill, authTagLength, ccmAnswer, ccmTag) {
+  t.test('gcm key length ' + length, function (t) {
     t.plan(3)
     var iv = Buffer.alloc(length, ivFill)
     var cipher = crypto.createCipheriv('aes-256-gcm', key, iv)
@@ -534,10 +567,33 @@ function testIV (t, length, answer, tag, key, ivFill) {
     var decrypted = decipher.update(Buffer.from(answer, 'hex'))
     t.equals(decrypted.toString(), 'fooo')
   })
+  if (length < 14) {
+    t.test('ccm key length ' + length, function (t) {
+      t.plan(4)
+      var iv = Buffer.alloc(length, ivFill)
+      var cipher = crypto.createCipheriv('aes-256-ccm', key, iv, {
+        authTagLength: authTagLength
+      })
+      var out = cipher.update('fooo').toString('hex')
+      t.equals(out, ccmAnswer)
+      cipher.final()
+      var ourAuth = cipher.getAuthTag()
+      t.equals(ccmTag, ourAuth.toString('hex'))
+      var decipher = crypto.createDecipheriv('aes-256-ccm', key, iv, {
+        authTagLength: authTagLength
+      })
+      decipher.setAuthTag(ourAuth)
+      var decrypted = decipher.update(Buffer.from(out, 'hex'))
+      t.doesNotThrow(function () {
+        decipher.final()
+      })
+      t.equals(decrypted.toString(), 'fooo')
+    })
+  }
 }
 test('different IV lengths work for GCM', function (t) {
   gcmTest.forEach(function (item) {
-    testIV(t, item.length, item.answer, item.tag, Buffer.from(item.key, 'hex'), item.ivFill)
+    testIV(t, item.length, item.answer, item.tag, Buffer.from(item.key, 'hex'), item.ivFill, item.authTagLength, item.ccmAnswer, item.ccmTag)
   })
 })
 test('handle long uft8 plaintexts', function (t) {
