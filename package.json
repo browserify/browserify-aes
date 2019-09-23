@@ -22,7 +22,7 @@
     "browserify"
   ],
   "author": "",
-  "license": "MIT",
+  "license": "MIT and BSD-3 and (BSD-2 or GPL-2)",
   "bugs": {
     "url": "https://github.com/crypto-browserify/browserify-aes/issues"
   },
