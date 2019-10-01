@@ -5,19 +5,7 @@ var inherits = require('inherits')
 var GHASH = require('./ghash')
 var xor = require('buffer-xor')
 var incr32 = require('./incr32')
-
-function xorTest (a, b) {
-  var out = 0
-  if (a.length !== b.length) out++
-
-  var len = Math.min(a.length, b.length)
-  for (var i = 0; i < len; ++i) {
-    out += (a[i] ^ b[i])
-  }
-
-  return out
-}
-
+var xorTest = require('timing-safe-equal')
 function calcIv (self, iv, ck) {
   if (iv.length === 12) {
     self._finID = Buffer.concat([iv, Buffer.from([0, 0, 0, 1])])
@@ -34,7 +22,7 @@ function calcIv (self, iv, ck) {
   ghash.update(Buffer.alloc(8, 0))
   var ivBits = len * 8
   var tail = Buffer.alloc(8)
-  tail.writeUIntBE(ivBits, 0, 8)
+  tail.writeUIntBE(ivBits, 2, 6)
   ghash.update(tail)
   self._finID = ghash.state
   var out = Buffer.from(self._finID)
@@ -89,7 +77,7 @@ StreamCipher.prototype._final = function () {
   if (this._decrypt && !this._authTag) throw new Error('Unsupported state or unable to authenticate data')
 
   var tag = xor(this._ghash.final(this._alen * 8, this._len * 8), this._cipher.encryptBlock(this._finID))
-  if (this._decrypt && xorTest(tag, this._authTag)) throw new Error('Unsupported state or unable to authenticate data')
+  if (this._decrypt && !xorTest(tag, this._authTag)) throw new Error('Unsupported state or unable to authenticate data')
 
   this._authTag = tag
   this._cipher.scrub()

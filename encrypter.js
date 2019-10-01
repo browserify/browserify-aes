@@ -1,5 +1,6 @@
 var MODES = require('./modes')
-var AuthCipher = require('./authCipher')
+var GCM = require('./gcm')
+var CCM = require('./ccm')
 var Buffer = require('safe-buffer').Buffer
 var StreamCipher = require('./streamCipher')
 var Transform = require('cipher-base')
@@ -83,7 +84,7 @@ Splitter.prototype.flush = function () {
   return Buffer.concat([this.cache, padBuff])
 }
 
-function createCipheriv (suite, password, iv) {
+function createCipheriv (suite, password, iv, options) {
   var config = MODES[suite.toLowerCase()]
   if (!config) throw new TypeError('invalid suite type')
 
@@ -91,23 +92,25 @@ function createCipheriv (suite, password, iv) {
   if (password.length !== config.key / 8) throw new TypeError('invalid key length ' + password.length)
 
   if (typeof iv === 'string') iv = Buffer.from(iv)
-  if (config.mode !== 'GCM' && iv.length !== config.iv) throw new TypeError('invalid iv length ' + iv.length)
+  if (config.type !== 'auth' && iv.length !== config.iv) throw new TypeError('invalid iv length ' + iv.length)
 
   if (config.type === 'stream') {
     return new StreamCipher(config.module, password, iv)
-  } else if (config.type === 'auth') {
-    return new AuthCipher(config.module, password, iv)
+  } else if (config.mode === 'GCM') {
+    return new GCM(config.module, password, iv)
+  } else if (config.mode === 'CCM') {
+    return new CCM(config.module, password, iv, false, options)
   }
 
   return new Cipher(config.module, password, iv)
 }
 
-function createCipher (suite, password) {
+function createCipher (suite, password, options) {
   var config = MODES[suite.toLowerCase()]
   if (!config) throw new TypeError('invalid suite type')
 
   var keys = ebtk(password, false, config.key, config.iv)
-  return createCipheriv(suite, keys.key, keys.iv)
+  return createCipheriv(suite, keys.key, keys.iv, options)
 }
 
 exports.createCipheriv = createCipheriv
