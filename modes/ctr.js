@@ -1,4 +1,4 @@
-var xor = require('buffer-xor')
+var xor = require('../xor')
 var Buffer = require('safe-buffer').Buffer
 var incr32 = require('../incr32')
 
