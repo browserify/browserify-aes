@@ -1,4 +1,4 @@
-var xor = require('buffer-xor')
+var xor = require('../xor')
 
 function getBlock (self) {
   self._prev = self._cipher.encryptBlock(self._prev)

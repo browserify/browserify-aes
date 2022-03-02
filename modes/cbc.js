@@ -1,4 +1,4 @@
-var xor = require('buffer-xor')
+var xor = require('../xor')
 
 exports.encrypt = function (self, block) {
   var data = xor(block, self._prev)
