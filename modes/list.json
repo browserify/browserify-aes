@@ -187,5 +187,26 @@
     "iv": 12,
     "mode": "GCM",
     "type": "auth"
+  },
+  "aes-128-ccm": {
+    "cipher": "AES",
+    "key": 128,
+    "iv": 12,
+    "mode": "CCM",
+    "type": "auth"
+  },
+  "aes-192-ccm": {
+    "cipher": "AES",
+    "key": 192,
+    "iv": 12,
+    "mode": "CCM",
+    "type": "auth"
+  },
+  "aes-256-ccm": {
+    "cipher": "AES",
+    "key": 256,
+    "iv": 12,
+    "mode": "CCM",
+    "type": "auth"
   }
 }

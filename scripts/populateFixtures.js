@@ -1,25 +1,25 @@
-var modes = require('./modes/list.json')
-var fixtures = require('./test/fixtures.json')
+var modes = require('../modes/list.json')
+var fixtures = require('../test/fixtures.json')
 var crypto = require('crypto')
-var types = ['aes-128-cfb1', 'aes-192-cfb1', 'aes-256-cfb1']
-var ebtk = require('./EVP_BytesToKey')
+var types = ['aes-128-ccm', 'aes-192-ccm', 'aes-256-ccm']
+var ebtk = require('evp_bytestokey')
 var fs = require('fs')
 
 fixtures.forEach(function (fixture) {
   types.forEach(function (cipher) {
-    var suite = crypto.createCipher(cipher, new Buffer(fixture.password))
-    var buf = new Buffer('')
-    buf = Buffer.concat([buf, suite.update(new Buffer(fixture.text))])
-    buf = Buffer.concat([buf, suite.final()])
-    fixture.results.ciphers[cipher] = buf.toString('hex')
-    if (modes[cipher].mode === 'ECB') {
-      return
-    }
-    var suite2 = crypto.createCipheriv(cipher, ebtk(crypto, fixture.password, modes[cipher].key).key, new Buffer(fixture.iv, 'hex'))
-    var buf2 = new Buffer('')
-    buf2 = Buffer.concat([buf2, suite2.update(new Buffer(fixture.text))])
-    buf2 = Buffer.concat([buf2, suite2.final()])
+    var suite2 = crypto.createCipheriv(cipher, ebtk(fixture.password, false, modes[cipher].key).key, new Buffer(fixture.iv, 'hex').slice(0, 12), {
+      authTagLength: 16
+    })
+    var text = Buffer.from(fixture.text)
+    var aad = Buffer.from(fixture.aad, 'hex')
+    console.log('aad', aad)
+    suite2.setAAD(aad, {
+      plaintextLength: text.length
+    })
+    var buf2 = suite2.update(text)
+    suite2.final()
     fixture.results.cipherivs[cipher] = buf2.toString('hex')
+    fixture.authtag[cipher] = suite2.getAuthTag().toString('hex')
   })
 })
 fs.writeFileSync('./test/fixturesNew.json', JSON.stringify(fixtures, false, 4))
