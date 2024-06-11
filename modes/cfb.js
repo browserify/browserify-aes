@@ -1,5 +1,5 @@
 var Buffer = require('safe-buffer').Buffer
-var xor = require('buffer-xor')
+var xor = require('../xor')
 
 function encryptStart (self, data, decrypt) {
   var len = data.length

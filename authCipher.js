@@ -3,7 +3,7 @@ var Buffer = require('safe-buffer').Buffer
 var Transform = require('cipher-base')
 var inherits = require('inherits')
 var GHASH = require('./ghash')
-var xor = require('buffer-xor')
+var xor = require('./xor')
 var incr32 = require('./incr32')
 
 function xorTest (a, b) {
