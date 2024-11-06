@@ -124,7 +124,7 @@ GHASH.prototype.final = function (abl, bl) {
     this.ghash(Buffer.concat([this.cache, ZEROES], 16))
   }
 
-  this.ghash(fromArray([0, abl, 0, bl]))
+  this.ghash(fromArray([abl / 0x100000000, abl % 0x100000000, bl / 0x100000000, bl % 0x100000000]))
   return this.state
 }
 
